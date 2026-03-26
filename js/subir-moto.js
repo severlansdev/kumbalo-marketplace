@@ -1,0 +1,138 @@
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof window.api !== 'undefined' && !window.api.isAuthenticated()) {
+        alert("Debes iniciar sesión para publicar una moto.");
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const form = document.getElementById('uploadMotoForm');
+    const fileInput = document.getElementById('photoInput');
+    
+    // Si la zona existe, permitimos click para abrir el browser de archivos
+    const dropzone = document.getElementById('photoDropzone');
+    if(dropzone && fileInput) {
+        dropzone.addEventListener('click', () => fileInput.click());
+    }
+
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!fileInput || fileInput.files.length === 0) {
+            alert('Por favor sube al menos una foto de la motocicleta.');
+            return;
+        }
+
+        try {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.innerHTML = 'Subiendo a AWS S3...';
+                btn.disabled = true;
+            }
+
+            // Construir el FormData para el envío Multipart a FastAPI
+            const formData = new FormData();
+            formData.append('marca', document.getElementById('brand').value);
+            formData.append('modelo', document.getElementById('model').value);
+            formData.append('año', document.getElementById('year').value);
+            formData.append('precio', document.getElementById('price').value);
+            formData.append('kilometraje', document.getElementById('mileage').value || 0);
+            formData.append('descripcion', document.getElementById('description').value || 'Sin descripción');
+            
+            // Adjuntar la primera foto subida
+            formData.append('foto', fileInput.files[0]);
+
+            // Enviar petición POST
+            await window.api.motos.create(formData);
+            
+            alert('¡Moto publicada exitosamente!');
+            window.location.href = 'dashboard.html';
+
+        } catch (error) {
+            console.error(error);
+            alert(`Error al publicar la moto: ${error.message}`);
+        } finally {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.innerHTML = 'Publicar Moto';
+                btn.disabled = false;
+            }
+        }
+    });
+
+    // Llenar selector de años
+    const yearSelect = document.getElementById('year');
+    if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+        for (let y = currentYear + 1; y >= 1990; y--) {
+            const option = document.createElement('option');
+            option.value = y;
+            option.textContent = y;
+            yearSelect.appendChild(option);
+        }
+    }
+
+    // --- Lógica del Tasador IA (Smart Pricing) ---
+    const calculatePricing = () => {
+        const brand = document.getElementById('brand').value.toLowerCase();
+        const year = parseInt(document.getElementById('year').value) || 2015;
+        const engine = parseInt(document.getElementById('engine').value) || 150;
+        const priceInput = document.getElementById('price').value;
+        
+        const widget = document.getElementById('pricingWidget');
+        const feedbackMsg = document.getElementById('pricingFeedbackMessage');
+        
+        if(!widget) return;
+        
+        if(!priceInput || priceInput < 100000) {
+            widget.style.borderColor = 'var(--primary)';
+            widget.style.backgroundColor = 'var(--gray-light)';
+            feedbackMsg.innerHTML = 'Ingresa todos los datos y el precio para calcular la tasación en vivo...';
+            return;
+        }
+        
+        const IP = parseInt(priceInput);
+        
+        // Mock Predicción
+        let base = 6000000;
+        if(brand.includes('ducati') || brand.includes('bmw') || brand.includes('harley')) base = 35000000;
+        else if(brand.includes('yamaha') || brand.includes('honda')) base = 8000000;
+        
+        // Multipliers
+        const currentY = new Date().getFullYear();
+        let yearMult = 1 - ((currentY - year) * 0.05);
+        if (yearMult < 0.3) yearMult = 0.3;
+        
+        const engineAdd = (engine / 150) * 2000000;
+        
+        const estimatedPrice = (base * yearMult) + engineAdd;
+        
+        // Análisis
+        if(IP <= estimatedPrice * 0.90) {
+            // Favorable
+            widget.style.borderColor = 'var(--success)';
+            widget.style.backgroundColor = '#ecfdf5';
+            feedbackMsg.innerHTML = '<strong>¡Precio Excelente! 🔥</strong> Tu moto está tasada por debajo del mercado. ¡Se venderá rapidísimo!';
+            feedbackMsg.style.color = 'var(--success-dark)';
+        } else if (IP <= estimatedPrice * 1.15) {
+            // Justo
+            widget.style.borderColor = '#3b82f6';
+            widget.style.backgroundColor = '#eff6ff';
+            feedbackMsg.innerHTML = '<strong>Precio Justo ✅</strong> El valor está dentro del promedio nacional para esta marca, año y cilindraje.';
+            feedbackMsg.style.color = '#1d4ed8';
+        } else {
+            // Alto
+            widget.style.borderColor = 'var(--orange)';
+            widget.style.backgroundColor = '#fff7ed';
+            feedbackMsg.innerHTML = '<strong>Precio Alto ⚠️</strong> El precio es un poco más alto que el promedio estatal. Esto podría ralentizar la venta. Considera ajustarlo.';
+            feedbackMsg.style.color = '#c2410c';
+        }
+    };
+    
+    // Listeners para re-analizar dinámicamente
+    document.getElementById('price')?.addEventListener('input', calculatePricing);
+    document.getElementById('brand')?.addEventListener('change', calculatePricing);
+    document.getElementById('year')?.addEventListener('change', calculatePricing);
+    document.getElementById('engine')?.addEventListener('input', calculatePricing);
+});

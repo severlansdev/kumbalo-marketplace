@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportar un Problema | KUMBALO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/brand.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="dark-theme">
+    <header class="header">
+        <nav class="container nav">
+            <a href="index.html" class="logo">
+                <span class="logo-text">KUMBALO</span>
+            </a>
+        </nav>
+    </header>
+
+    <main class="container" style="padding: 120px 20px 60px; max-width: 600px; margin: 0 auto;">
+        <h1 style="font-family: 'Playfair Display', serif; color: #ff2800; margin-bottom: 20px;">Reportar un Problema</h1>
+        <p style="color: #888; margin-bottom: 30px;">Ayúdanos a mejorar reportando bugs o comportamientos extraños.</p>
+
+        <form id="reportForm" style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: #fff; margin-bottom: 8px;">Tipo de problema</label>
+                <select style="width: 100%; padding: 12px; border-radius: 8px; background: #222; color: #fff; border: 1px solid #444;">
+                    <option>Error en la interfaz (Visual)</option>
+                    <option>No carga la información</option>
+                    <option>Error al subir moto</option>
+                    <option>Otro</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: #fff; margin-bottom: 8px;">Descripción detallada</label>
+                <textarea rows="5" style="width: 100%; padding: 12px; border-radius: 8px; background: #222; color: #fff; border: 1px solid #444;" placeholder="Describe qué pasó..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Enviar Reporte</button>
+        </form>
+    </main>
+
+    <script src="js/theme.js"></script>
+    <script>
+        document.getElementById('reportForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Gracias por tu reporte. Nuestro equipo técnico lo revisará pronto.');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

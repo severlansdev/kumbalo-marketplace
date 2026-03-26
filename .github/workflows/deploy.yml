@@ -1,0 +1,70 @@
+name: CI/CD Pipeline - KUMBALO Marketplace
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Ejecutar Pruebas Unitarias
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: kuser
+          POSTGRES_PASSWORD: kpassword
+          POSTGRES_DB: kumbalo_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Instalar Dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Ejecutar Pytest
+        env:
+          DATABASE_URL: postgresql://kuser:kpassword@localhost:5432/kumbalo_db
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+        run: |
+          PYTHONPATH=. pytest backend/tests -v
+
+  build-and-deploy:
+    name: Construir y Desplegar
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Aquí irían los steps para:
+      # 1. Login en AWS ECR / Docker Hub
+      # 2. Build & Push de la imagen Docker
+      # 3. Trigger del despliegue en EC2 / ECS usando AWS CLI
+      - name: Simulación de Deploy
+        run: echo "Despliegue exitoso a Producción. Tareas pendientes: Configurar credenciales cloud."

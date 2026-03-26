@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" fill="none">
+  <!-- KUMBALO Logo: K Shield + Wordmark -->
+  <!-- Hexagonal shield -->
+  <path d="M24 2L44 14V34L24 46L4 34V14L24 2Z" fill="#FF2800"/>
+  <!-- Inner dark area -->
+  <path d="M24 6L40 16V32L24 42L8 32V16L24 6Z" fill="#0A0A0A"/>
+  <!-- Letter K -->
+  <path d="M16 14V34H21V27L28 34H35L26 25L34 14H27L21 23V14H16Z" fill="#FF2800"/>
+  <!-- Wordmark -->
+  <text x="56" y="33" font-family="Inter, sans-serif" font-weight="800" font-size="26" letter-spacing="4" fill="white">KUMBALO</text>
+</svg>

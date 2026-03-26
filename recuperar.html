@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña | KUMBALO</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <meta name="theme-color" content="#ff2800">
+
+    <link rel="stylesheet" href="css/brand.css">
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- JS dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <style>
+        .auth-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--light) 0%, var(--white) 100%);
+            padding: var(--space-4);
+        }
+        .auth-card {
+            background: var(--white);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            padding: var(--space-8);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        .auth-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--secondary);
+            font-family: var(--font-family-display);
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-black);
+            text-decoration: none;
+            margin-bottom: var(--space-6);
+        }
+        .auth-title {
+            font-family: var(--font-family-display);
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--space-2);
+            color: var(--secondary);
+        }
+        .auth-desc {
+            color: var(--gray);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--space-6);
+        }
+    </style>
+</head>
+<body>
+    <section class="auth-section">
+        <div class="auth-card">
+            <a href="index.html" class="auth-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 48 48" fill="none">
+                    <path d="M24 2L44 14V34L24 46L4 34V14Z" fill="#FF2800"/>
+                    <path d="M24 6L40 16V32L24 42L8 32V16Z" fill="#0A0A0A"/>
+                    <path d="M16 14V34H21V27L28 34H35L26 25L34 14H27L21 23V14Z" fill="#FF2800"/>
+                </svg>
+                KUMBALO
+            </a>
+            
+            <h1 class="auth-title">Recuperar Acceso</h1>
+            <p class="auth-desc">Ingresa tu correo electrónico registrado y te enviaremos instrucciones para restablecer tu contraseña.</p>
+
+            <form class="contact-form" id="recoveryForm" novalidate>
+                <div class="form-group" style="text-align: left;">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" required placeholder="ejemplo@correo.com">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+                    Enviar Instrucciones
+                </button>
+            </form>
+
+            <p style="margin-top: 1.5rem; font-size: 0.9rem;">
+                <a href="login.html" style="color: var(--primary); font-weight: 500;">Volver al Inicio de Sesión</a>
+            </p>
+        </div>
+    </section>
+
+    <script src="js/theme.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/recuperar.js"></script>
+</body>
+</html>

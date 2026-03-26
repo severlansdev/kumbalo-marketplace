@@ -1,0 +1,12 @@
+{
+  "skills": {
+    "web-developer": {
+      "command": "/web-developer",
+      "description": "Create and modify web files (HTML, CSS, JavaScript)"
+    },
+    "moto-marketplace-advisor": {
+      "command": "/moto-marketplace-advisor",
+      "description": "Strategic guidance for motorcycle marketplace startup"
+    }
+  }
+}

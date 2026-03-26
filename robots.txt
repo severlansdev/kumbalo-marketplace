@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard.html
+Disallow: /subir-moto.html
+Disallow: /recuperar.html
+
+Sitemap: https://kumbalo.com/sitemap.xml
+
+# Crawlers específicos
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /

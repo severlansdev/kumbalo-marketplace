@@ -1,0 +1,111 @@
+/* ========================================
+   KUMBALO — Brand Identity Tokens
+   Created by: Brand Designer Agent
+   Version: 1.0 | March 2026
+   ======================================== */
+
+/* 
+   This file defines the KUMBALO brand identity tokens.
+   Import this file BEFORE styles.css for brand consistency.
+   All components should reference these tokens, never hardcoded values.
+*/
+
+:root {
+    /* ── Brand Logo ── */
+    --brand-name: 'KUMBALO';
+    
+    /* ── Brand Colors ── */
+    --brand-primary: #FF2800;
+    --brand-primary-hover: #CC2000;
+    --brand-primary-light: #FF5233;
+    --brand-primary-glow: rgba(255, 40, 0, 0.15);
+    --brand-primary-shadow: rgba(255, 40, 0, 0.4);
+    
+    /* ── Surface Colors ── */
+    --brand-bg: #0A0A0A;
+    --brand-surface: #141414;
+    --brand-card: #1A1A1A;
+    --brand-card-hover: #222222;
+    --brand-elevated: #2A2A2A;
+    
+    /* ── Text Colors ── */
+    --brand-text-primary: #FFFFFF;
+    --brand-text-secondary: #E0E0E0;
+    --brand-text-muted: #888888;
+    --brand-text-subtle: #555555;
+    
+    /* ── Border & Dividers ── */
+    --brand-border: rgba(255, 255, 255, 0.08);
+    --brand-border-hover: rgba(255, 255, 255, 0.15);
+    --brand-border-active: rgba(255, 40, 0, 0.5);
+    --brand-divider: rgba(255, 255, 255, 0.04);
+    
+    /* ── Semantic Colors ── */
+    --brand-success: #22C55E;
+    --brand-warning: #F59E0B;
+    --brand-error: #EF4444;
+    --brand-info: #3B82F6;
+    --brand-gold: #FFD700;
+    
+    /* ── Gradients ── */
+    --brand-gradient-hero: linear-gradient(135deg, #0A0A0A 0%, #1a0000 50%, #0A0A0A 100%);
+    --brand-gradient-card: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
+    --brand-gradient-cta: linear-gradient(135deg, #FF2800 0%, #CC2000 100%);
+    --brand-gradient-premium: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    
+    /* ── Typography ── */
+    --brand-font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --brand-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --brand-font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    
+    /* ── Shadows ── */
+    --brand-shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --brand-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --brand-shadow-glow: 0 0 20px rgba(255, 40, 0, 0.2);
+    --brand-shadow-button: 0 4px 14px rgba(255, 40, 0, 0.35);
+    
+    /* ── Badge Colors ── */
+    --badge-hot: #FF2800;
+    --badge-pro: #FFD700;
+    --badge-verified: #22C55E;
+    --badge-new: #3B82F6;
+    
+    /* ── Glassmorphism ── */
+    --glass-bg: rgba(10, 10, 10, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-blur: blur(20px);
+}
+
+/* ── Brand Logo SVG (Inline Utility) ── */
+.brand-logo-icon {
+    color: var(--brand-primary);
+    display: inline-flex;
+    align-items: center;
+}
+
+.brand-logo-text {
+    font-family: var(--brand-font-body);
+    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    color: var(--brand-text-primary);
+    text-transform: uppercase;
+}
+
+/* ── Brand Badge Styles ── */
+.badge-hot {
+    background: var(--badge-hot) !important;
+    color: white !important;
+}
+.badge-pro {
+    background: var(--badge-pro) !important;
+    color: #000 !important;
+}
+.badge-verified {
+    background: var(--badge-verified) !important;
+    color: white !important;
+}
+.badge-new {
+    background: var(--badge-new) !important;
+    color: white !important;
+}

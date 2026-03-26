@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Meta tags dinámicas SEO simuladas -->
+    <title id="pageTitle">Detalles de Moto - KUMBALO Marketplace</title>
+    <meta id="ogTitle" property="og:title" content="Moto en Venta - KUMBALO">
+    <meta id="ogImage" property="og:image" content="">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <meta name="theme-color" content="#ff2800">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <!-- Swiper.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/brand.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .moto-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            padding: 3rem 0;
+            margin-top: 80px; /* offset navbar */
+        }
+        
+        /* Swiper overrides */
+        .swiper {
+            width: 100%;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .swiper-slide img {
+            width: 100%;
+            height: 500px; /* Fixed height for consistent look */
+            object-fit: cover;
+            display: block;
+        }
+
+        .moto-info-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid var(--gray-light);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 100px;
+        }
+        .moto-price {
+            font-size: 2.5rem;
+            font-family: var(--font-family-display);
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        .moto-title {
+            font-family: var(--font-family-display);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+        }
+        .specs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .spec-item {
+            background: var(--light);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+        .spec-value {
+            font-weight: 600;
+            display: block;
+            font-size: 1.1rem;
+            color: var(--secondary);
+        }
+        .spec-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+        .contact-btn {
+            font-size: 1.2rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        #errorState, #loadingState {
+            text-align: center;
+            padding: 5rem 0;
+        }
+        @media (max-width: 900px) {
+            .moto-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header (Unified) -->
+    <header class="header">
+        <nav class="container nav">
+            <a href="index.html" class="logo" aria-label="KUMBALO - Inicio">
+                <span class="logo-icon brand-logo-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 2L44 14V34L24 46L4 34V14Z" fill="#FF2800"/>
+                        <path d="M24 6L40 16V32L24 42L8 32V16Z" fill="#0A0A0A"/>
+                        <path d="M16 14V34H21V27L28 34H35L26 25L34 14H27L21 23V14Z" fill="#FF2800"/>
+                    </svg>
+                </span>
+                <span class="logo-text">KUMBALO</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="catalogo.html">Catálogo</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <button id="theme-toggle" class="btn-icon" aria-label="Cambiar tema">
+                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><circle cx="12" cy="12" r="5"></circle></svg>
+                </button>
+                <div id="auth-buttons" style="display:flex; gap:10px;">
+                    <a href="login.html" class="btn btn-outline">Ingresar</a>
+                    <a href="registro.html" class="btn btn-primary">Registrarse</a>
+                </div>
+                <div id="user-menu" style="display:none; align-items:center; gap:15px;">
+                    <a href="dashboard.html" class="btn btn-outline" style="padding:8px 15px; border-radius:20px;">Mi Panel</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div id="loadingState" class="container" style="margin-top: 100px;">
+        <i class="ti ti-loader ti-spin" style="font-size: 3rem; color: var(--primary);"></i>
+        <h2>Cargando información de la moto...</h2>
+    </div>
+
+    <div id="errorState" class="container" style="display: none; margin-top: 100px;">
+        <i class="ti ti-alert-circle" style="font-size: 3rem; color: var(--error);"></i>
+        <h2>Moto no encontrada</h2>
+        <p>Es posible que esta publicación haya sido eliminada.</p>
+        <a href="catalogo.html" class="btn btn-primary" style="margin-top: 1rem;">Volver al catálogo</a>
+    </div>
+
+    <section id="motoContent" class="container moto-container" style="display: none;">
+        <!-- Left: Gallery & Desc -->
+        <div class="moto-main">
+            <!-- Swiper Carousel Start -->
+            <div class="swiper moto-swiper">
+                <div class="swiper-wrapper" id="swiperWrapper">
+                    <!-- Javascript generates the slides here -->
+                </div>
+                <!-- Swiper Navigation Buttons -->
+                <div class="swiper-button-next" style="color: var(--primary);"></div>
+                <div class="swiper-button-prev" style="color: var(--primary);"></div>
+                <div class="swiper-pagination"></div>
+            </div>
+            <!-- Swiper Carousel End -->
+            
+            <div style="margin-top: 3rem; background: var(--white); padding: 2rem; border-radius: 1rem; border: 1px solid var(--gray-light);">
+                <h3 style="color: var(--secondary); font-family: var(--font-family-display);">Descripción del Vendedor</h3>
+                <p id="motoDesc" style="white-space: pre-wrap; margin-top: 1rem; color: var(--charcoal); line-height: 1.6;"></p>
+            </div>
+        </div>
+
+        <!-- Right: Sticky Info Box -->
+        <aside>
+            <div class="moto-info-card">
+                <span id="motoBadge" class="badge badge-new" style="margin-bottom: 1rem;">Destacado</span>
+                <h1 id="motoTitle" class="moto-title">Cargando...</h1>
+                <div id="motoPrice" class="moto-price">$0</div>
+
+                <!-- Módulo de Financiación (Synergy: Financiero & Growth) -->
+                <div class="credit-simulator-box" style="margin-bottom: 2rem; background: var(--gray-light); padding: 1.5rem; border-radius: var(--radius-lg); border-left: 4px solid var(--primary);">
+                    <h4 style="font-family: var(--font-family-display); color: var(--secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16.01" y1="14" y2="14"/><line x1="12" x2="12.01" y1="14" y2="14"/><line x1="8" x2="8.01" y1="14" y2="14"/><line x1="16" x2="16.01" y1="10" y2="10"/><line x1="12" x2="12.01" y1="10" y2="10"/><line x1="8" x2="8.01" y1="10" y2="10"/><line x1="16" x2="16.01" y1="18" y2="18"/><line x1="12" x2="12.01" y1="18" y2="18"/><line x1="8" x2="8.01" y1="18" y2="18"/></svg>
+                        Pídela a Crédito
+                    </h4>
+                    <p style="font-size: 0.9rem; color: var(--gray); margin-bottom: 1rem;">Obtén tasas preferenciales con financieras aliadas.</p>
+                    
+                    <div style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
+                        <div style="flex: 1;">
+                            <label for="plazoCredito" style="font-size: 0.8rem; font-weight: bold; color: var(--charcoal);">Plazo</label>
+                            <select id="plazoCredito" style="width: 100%; padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--gray); margin-top: 5px; font-weight: bold; cursor: pointer;">
+                                <option value="12">12 Meses</option>
+                                <option value="24">24 Meses</option>
+                                <option value="36">36 Meses</option>
+                                <option value="48" selected>48 Meses</option>
+                                <option value="60">60 Meses</option>
+                            </select>
+                        </div>
+                        <div style="flex: 2; text-align: right;">
+                            <span style="font-size: 0.8rem; color: var(--gray);">Cuota Mensual Aprox.</span>
+                            <div id="cuotaMensual" style="font-size: 1.8rem; font-weight: 700; color: var(--primary); letter-spacing: -1px;">$0</div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-block" style="background-color: var(--charcoal); border-color: var(--charcoal); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                        Preaprobación en Línea
+                    </button>
+                    <p style="font-size: 0.75rem; color: var(--gray); text-align: center; margin-top: 10px; margin-bottom: 0;">
+                        *Cálculo con Tasa E.A. del 22%. Sujeto a estudio por Bancolombia / SUFI.
+                    </p>
+                </div>
+
+                <div class="specs-grid">
+                    <div class="spec-item">
+                        <span class="spec-value" id="specYear">-</span>
+                        <span class="spec-label">Año</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-value" id="specKm">-</span>
+                        <span class="spec-label">Kilometraje</span>
+                    </div>
+                    <div class="spec-item" style="grid-column: 1 / -1;">
+                        <span class="spec-value" id="specBrand">-</span>
+                        <span class="spec-label">Marca</span>
+                    </div>
+                </div>
+
+                <p style="text-align: center; color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
+                    Publicada el <span id="motoDate"></span>
+                </p>
+
+                <!-- El CTA Transaccional (WhatsApp / Mensaje Interno) -->
+                <!-- Asumiremos redirección a WhatsApp simulada con el ID del vendedor -->
+                <button id="btnContactar" class="btn btn-primary btn-block contact-btn" style="background-color: #25D366; border-color: #25D366; margin-bottom: 0.5rem;">
+                    <i class="ti ti-brand-whatsapp"></i> Contactar al Vendedor
+                </button>
+                <button id="btnFavorito" class="btn btn-outline btn-block contact-btn">
+                    <i class="ti ti-heart"></i> Guardar en Favoritos
+                </button>
+                <p style="text-align: center; font-size: 0.8rem; margin-top: 1rem; color: var(--text-light);">
+                    Nunca envíes dinero por adelantado sin haber visto la moto.
+                </p>
+            </div>
+        </aside>
+    </section>
+
+    <!-- Modal de Contacto Interno -->
+    <div id="contactModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: white; padding: 2rem; border-radius: var(--radius-lg); width: 90%; max-width: 500px;">
+            <h2 style="font-family: var(--font-family-display); font-size: var(--font-size-xl); margin-bottom: 1rem; color: var(--secondary);">Enviar Mensaje al Vendedor</h2>
+            <form id="contactFormInternal">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="mensajeContenido" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Mensaje</label>
+                    <textarea id="mensajeContenido" rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid var(--gray-light); border-radius: var(--radius-md);" required placeholder="Hola, estoy interesado en tu moto..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" id="btnCancelContact" class="btn btn-outline">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: var(--primary);">Enviar Mensaje</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>KUMBALO</h4>
+                    <p>El marketplace de motos premium más confiable de Colombia.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="terminos.html">Términos</a></li>
+                        <li><a href="privacidad.html">Privacidad</a></li>
+                        <li><a href="cookies.html">Cookies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Soporte</h4>
+                    <ul>
+                        <li><a href="soporte.html">Soporte</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                        <li><a href="reportar.html">Reportar Problema</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 KUMBALO. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/moto.js"></script>
+</body>
+</html>
