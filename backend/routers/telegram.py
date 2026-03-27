@@ -38,7 +38,7 @@ async def ask_gemini(user_message: str, history: list = None) -> str:
     if not GEMINI_API_KEY:
         return None
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     
     # 1. Construir un solo bloque de texto para máxima compatibilidad
     full_prompt = f"{SYSTEM_PROMPT}\n\n---\nHISTORIAL DE CONVERSACIÓN:\n"
