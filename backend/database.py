@@ -13,11 +13,18 @@ except ImportError:
 # We construct the URL from env variables (Vercel uses POSTGRES_URL or STORAGE_URL)
 DATABASE_URL = os.getenv("POSTGRES_URL", os.getenv("STORAGE_URL", os.getenv("DATABASE_URL", "sqlite:///./test.db")))
 
-# Vercel's postgres:// needs to be changed to postgresql+pg8000:// for SQLAlchemy with pure Python driver
+# Vercel's postgres:// needs to be changed to postgresql+pg8000:// for SQLAlchemy
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+pg8000://", 1)
 elif DATABASE_URL.startswith("postgresql://") and "+pg8000" not in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+pg8000://", 1)
+
+# Clean problematic query parameters for pg8000
+if "pg8000" in DATABASE_URL and "?" in DATABASE_URL:
+    base_url, query = DATABASE_URL.split("?", 1)
+    # We strip common problematic params for pg8000
+    params = [p for p in query.split("&") if not any(x in p for x in ["sslmode", "channel_binding"])]
+    DATABASE_URL = base_url + ("?" + "&".join(params) if params else "")
 
 # Build engine with appropriate arguments
 connect_args = {}
