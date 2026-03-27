@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# We construct the URL from env variables (Vercel uses POSTGRES_URL)
-DATABASE_URL = os.getenv("POSTGRES_URL", os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/marketplace"))
+# We construct the URL from env variables (Vercel uses POSTGRES_URL or STORAGE_URL)
+DATABASE_URL = os.getenv("POSTGRES_URL", os.getenv("STORAGE_URL", os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/marketplace")))
 
 # Vercel's postgres:// needs to be changed to postgresql:// for SQLAlchemy if it's not already
 if DATABASE_URL.startswith("postgres://"):
