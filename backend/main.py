@@ -107,46 +107,46 @@ def health_check():
         }
     }
 
-# --- Routers (guarded) ---
+# --- Routers (Standardized with /api prefix) ---
 try:
     from .routers import auth
-    app.include_router(auth.router)
+    app.include_router(auth.router, prefix="/api")
 except Exception as e:
     print(f"[WARN] Could not load auth router: {e}")
 
 try:
     from .routers import motos
-    app.include_router(motos.router)
+    app.include_router(motos.router, prefix="/api")
 except Exception as e:
     print(f"[WARN] Could not load motos router: {e}")
 
 try:
     from .routers import mensajes
-    app.include_router(mensajes.router)
+    app.include_router(mensajes.router, prefix="/api")
 except Exception as e:
     print(f"[WARN] Could not load mensajes router: {e}")
 
 try:
     from .routers import payments
-    app.include_router(payments.router)
+    app.include_router(payments.router, prefix="/api")
 except Exception as e:
     print(f"[WARN] Could not load payments router: {e}")
 
 try:
     from .routers import chat
-    app.include_router(chat.router)
+    app.include_router(chat.router, prefix="/api")
 except Exception as e:
     print(f"[WARN] Could not load chat router: {e}")
 
 try:
     from .routers import telegram
-    app.include_router(telegram.router)
+    app.include_router(telegram.router, prefix="/api")
 except Exception as e:
     print(f"[WARN] Could not load telegram router: {e}")
 
 try:
     from .routers import agents
-    app.include_router(agents.router, prefix="/api/v1")
+    app.include_router(agents.router, prefix="/api/v1") # already has /api
 except Exception as e:
     print(f"[WARN] Could not load agents router: {e}")
 
