@@ -1,16 +1,24 @@
-from fastapi import FastAPI, Request
+import sys
+import os
+import traceback
 
-app = FastAPI()
+# Add the project root to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-@app.get("/api/health")
-@app.get("/api/v1/health")
-def health():
-    return {"status": "alive", "service": "kumbalo-api"}
+try:
+    from backend.main import app
+except Exception as e:
+    # If backend fails to load, create a diagnostic app
+    from fastapi import FastAPI, Request
+    app = FastAPI(title="KUMBALO API - DIAGNOSTIC MODE")
+    _err = str(e)
+    _trace = traceback.format_exc()
 
-@app.api_route("/api/v1/telegram/webhook", methods=["GET", "POST"])
-async def telegram_webhook(request: Request):
-    return {"status": "ok", "message": "webhook endpoint active"}
-
-@app.get("/api/{path:path}")
-def catch_all(path: str):
-    return {"status": "ok", "path": path}
+    @app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+    async def diagnostic(path: str, request: Request):
+        return {
+            "mode": "diagnostic",
+            "error": _err,
+            "trace": _trace,
+            "hint": "The backend failed to import. Check the trace for missing modules."
+        }
