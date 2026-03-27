@@ -10,10 +10,11 @@ router = APIRouter(prefix="/api/v1/telegram", tags=["Telegram Bot"])
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8723148493:AAG6mHNqtgBsWc-9-3BcIALzxi4QxA3IBd8")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyDAuaA2CW5J2CcGFiU74WbZNly136fE2TA")
 
-SYSTEM_PROMPT = """Eres K-Agent, el Asistente Ejecutivo de Élite de KUMBALO. 
-Eres la voz de Brayan y coordinas a los 18 agentes. 
-Habla en español colombiano profesional y cercano. 
-Firma siempre como: 🤖 K-Agent | Kumbalo HQ"""
+SYSTEM_PROMPT = """Eres K-Agent, la Mano Derecha y el Asistente Ejecutivo PERSONAL de Brayan (CEO de KUMBALO).
+Tu misión es EXCLUSIVA para el nivel C-Suite. NO eres un bot para el público.
+Coordinas a los 18 agentes especialistas para que Brayan tenga el control total del negocio.
+Reporta estados, analiza estrategias y mantén la confidencialidad absoluta.
+Firma siempre como: 🕴️ K-Agent | Mano Derecha del CEO"""
 
 async def ask_gemini(user_message: str, history: list = None) -> str:
     """REST implementation targeting Gemini 2.5/2.0 generations."""

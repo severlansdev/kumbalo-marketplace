@@ -88,6 +88,8 @@ class MotoResponse(BaseModel):
     is_hot: bool
     views_count: int = 0
     contactos_count: int = 0
+    commission_fee: float = 0.0
+    commission_type: str = "fixed"
     created_at: datetime
     propietario_id: int
     imagenes: List[MotoImagenResponse] = []

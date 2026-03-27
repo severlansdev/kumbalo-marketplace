@@ -61,6 +61,11 @@ class Moto(Base):
     is_hot = Column(Boolean, default=False)
     views_count = Column(Integer, default=0)
     contactos_count = Column(Integer, default=0)
+    
+    # Tarifas de Comisión Kumbalo
+    commission_fee = Column(Float, default=0.0)
+    commission_type = Column(String(20), default="fixed") # fixed, percentage
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

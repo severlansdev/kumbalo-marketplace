@@ -6,6 +6,7 @@ from ..database import get_db
 from .auth import get_current_user, get_current_admin
 from ..aws_s3 import upload_image_to_s3
 from ..utils import sanitize_input
+from ..utils.fees import calculate_kumbalo_fee
 
 router = APIRouter(prefix="/motos", tags=["motos"])
 
@@ -62,7 +63,9 @@ async def create_moto(
         kilometraje=kilometraje,
         descripcion=sanitize_input(descripcion),
         image_url=image_url,
-        propietario_id=current_user.id
+        propietario_id=current_user.id,
+        commission_fee=calculate_kumbalo_fee(precio),
+        commission_type="fixed"
     )
     
     db.add(nueva_moto)
