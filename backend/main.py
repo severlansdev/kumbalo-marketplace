@@ -71,6 +71,7 @@ def health_check():
         "env_checks": {
             "gemini_api_key": "set" if os.getenv("GEMINI_API_KEY") else "missing",
             "telegram_bot_token": "set" if os.getenv("TELEGRAM_BOT_TOKEN") else "using_default",
+            "telegram_router_active": "telegram" in globals() or "telegram" in sys.modules,
             "all_keys": list(os.environ.keys())
         }
     }
