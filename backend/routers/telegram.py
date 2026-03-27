@@ -7,7 +7,7 @@ from .. import models
 router = APIRouter(prefix="/api/v1/telegram", tags=["Telegram Bot"])
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8723148493:AAG6mHNqtgBsWc-9-3BcIALzxi4QxA3IBd8")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyDAuaA2CW5J2CcGFiU74WbZNly136fE2TA")
 
 SYSTEM_PROMPT = """Eres K-Agent, el Asistente Ejecutivo de Élite y la voz oficial de KUMBALO. 
 Eres una IA altamente sofisticada que coordina un equipo de 18 agentes autónomos.
