@@ -35,7 +35,8 @@ class AutonomyEngine:
             "Agente de Alianzas & Ecosistema",
             "Agente de Comunidad & Soporte",
             "Agente de Performance Expert",
-            "Agente de Diseño Gráfico & Brand"
+            "Agente de Diseño Gráfico & Brand",
+            "Agente Arquitekto Elite (Super-Agente 18)"
         ]
 
     def process_backlog(self):
@@ -90,9 +91,9 @@ class AutonomyEngine:
         report += "\n\n📝 *PETICIONES PROCESADAS*:\n"
         report += user_requests
         
-        report += "\n\n🤖 *Estado de Agentes*: 17 Activos (En ejecución autónoma)\n"
+        report += "\n\n🤖 *Estado de Agentes*: 18 Activos (En ejecución autónoma)\n"
         report += "📅 *Próxima Auditoría*: Mañana 12:00 PM\n\n"
-        report += "🔥 *Acción Recomendada*: Los agentes están trabajando en tus peticiones."
+        report += "🔥 *Acción Recomendada*: El Arquitekto Elite está supervisando la infraestructura global."
 
         # Enviar vía Telegram
         success = notifier.send_telegram(report)
