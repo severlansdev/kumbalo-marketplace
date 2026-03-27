@@ -101,66 +101,48 @@ async def health_check():
         "environment": "production" if os.environ.get("VERCEL") else "local"
     }
 
-# --- Global for error tracking ---
-router_errors = []
-
-@app.get("/api/debug-routes")
-async def debug_routes():
-    routes = []
-    for route in app.routes:
-        routes.append({
-            "path": route.path,
-            "name": route.name,
-            "methods": list(route.methods) if hasattr(route, "methods") else []
-        })
-    return {
-        "routes": routes,
-        "import_errors": router_errors,
-        "sys_path": sys.path
-    }
-
 # --- Routers (Standardized with /api prefix) ---
 try:
     from .routers import auth
     app.include_router(auth.router, prefix="/api")
 except Exception as e:
-    router_errors.append(f"auth: {str(e)}")
+    print(f"[ERROR] Could not load auth router: {e}")
 
 try:
     from .routers import motos
     app.include_router(motos.router, prefix="/api")
 except Exception as e:
-    router_errors.append(f"motos: {str(e)}")
+    print(f"[ERROR] Could not load motos router: {e}")
 
 try:
     from .routers import mensajes
     app.include_router(mensajes.router, prefix="/api")
 except Exception as e:
-    router_errors.append(f"mensajes: {str(e)}")
+    print(f"[ERROR] Could not load mensajes router: {e}")
 
 try:
     from .routers import payments
     app.include_router(payments.router, prefix="/api")
 except Exception as e:
-    router_errors.append(f"payments: {str(e)}")
+    print(f"[ERROR] Could not load payments router: {e}")
 
 try:
     from .routers import chat
     app.include_router(chat.router, prefix="/api")
 except Exception as e:
-    router_errors.append(f"chat: {str(e)}")
+    print(f"[ERROR] Could not load chat router: {e}")
 
 try:
     from .routers import telegram
     app.include_router(telegram.router, prefix="/api")
 except Exception as e:
-    router_errors.append(f"telegram: {str(e)}")
+    print(f"[ERROR] Could not load telegram router: {e}")
 
 try:
     from .routers import agents
     app.include_router(agents.router, prefix="/api/v1")
 except Exception as e:
-    router_errors.append(f"agents: {str(e)}")
+    print(f"[ERROR] Could not load agents router: {e}")
 
 try:
     from .routers import runt
