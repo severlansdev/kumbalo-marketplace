@@ -160,3 +160,13 @@ class BacklogAgente(Base):
     agente_asignado = Column(String(100), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class TelegramHistory(Base):
+    __tablename__ = "telegram_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(String(50), index=True)
+    role = Column(String(20)) # "user" o "model"
+    content = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

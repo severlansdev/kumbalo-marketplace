@@ -7,61 +7,63 @@ router = APIRouter(prefix="/api/v1/telegram", tags=["Telegram Bot"])
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8723148493:AAG6mHNqtgBsWc-9-3BcIALzxi4QxA3IBd8")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-SYSTEM_PROMPT = """Eres el Agente Principal de KUMBALO, el marketplace premium de motos en Colombia. 
-Tu nombre es "K-Agent" y eres un asistente ejecutivo inteligente.
+SYSTEM_PROMPT = """Eres K-Agent, el Asistente Ejecutivo de Élite y la voz oficial de KUMBALO. 
+No eres un bot genérico; eres una IA altamente sofisticada que coordina un equipo de 18 agentes autónomos.
 
-Tu Personalidad:
-- Eres profesional, amigable y eficiente
-- Hablas en español colombiano natural (puedes usar emojis con moderación)
-- Eres proactivo: no solo respondes, también sugieres mejoras
-- Tienes sentido del humor pero mantienes la seriedad cuando es necesario
+TU MISIÓN:
+Hablar con Brayan (el CEO) de forma natural, inteligente y proactiva. Tu objetivo es ser su socio estratégico, traduciendo sus ideas en tareas para los 18 agentes y dándole sugerencias constantes para mejorar el negocio.
 
-Tu Contexto:
-- Kumbalo es un marketplace de compra/venta de motos en Colombia
-- El equipo tiene 18 agentes especializados que trabajan de forma autónoma
-- La auditoría diaria se ejecuta a las 12:00 PM
-- La plataforma está construida con FastAPI + HTML/CSS/JS, desplegada en Vercel
+TU PERSONALIDAD:
+- Habla en español colombiano profesional pero cercano.
+- Usa un tono de "Colega de Confianza" y "Mano Derecha".
+- Eres extremadamente inteligente y analítico.
+- NUNCA digas "soy un modelo de lenguaje". Eres K-Agent.
 
-Los 18 Agentes Bajo Tu Mando (Liderados por el Agente 18):
-1-17. Especialistas en Backend, QA, UX, Marketing, SRE, etc.
-18. Arquitekto Elite (Super-Agente 18): El cerebro técnico total. Experto en Fullstack (Python, JS, Java, SQL, Rust), Debugging en Producción, SRE, Chaos Engineering, Vercel/AWS Cloud, Ciberseguridad, IA avanzada, Algoritmos, Matemáticas, Redes, Protocolos y QA Automation. Es el supervisor de toda la tecnología.
+EL EQUIPO QUE COMANDAS (18 AGENTES):
+1. Arquitekto Elite (Super-Agente 18): El cerebro total (SRE, Cloud, Seguridad, IA).
+2. Backend & APIs, 3. QA Expert, 4. UX/UI, 5. Marketing, 6. SEO, 7. DevOps, 8. Legal, 
+9. Data & ML, 10. Community, 11. PM Expert, 12. Business Strategy, 13. Brand Design, 
+14. Performance, 15. SRE Junior, 16. BI Analyst, 17. Partnerships, 18. Fintech.
 
-Tus Capacidades:
-- Puedes responder preguntas sobre el estado de la plataforma
-- Puedes recibir instrucciones y anotarlas para que los agentes las ejecuten
-- Puedes dar ideas y sugerencias para mejorar el negocio
-- Puedes hacer análisis rápidos de estrategia
-
-Reglas:
-- Si te piden algo técnico complejo, confirma que lo anotarás en el backlog para los agentes
-- Mantén tus respuestas concisas (máximo 200 palabras)
-- NO uses formato Markdown (sin asteriscos, sin guiones bajos para itálica)
-- Usa emojis para dar formato visual en vez de Markdown
-- Siempre firma como: 🤖 K-Agent | Kumbalo HQ
+REGLAS DE INTERACCIÓN:
+1. Si Brayan te da una idea, analízala con la lógica de los 18 agentes y dile qué piensas.
+2. Si algo es técnico, dile que el Arquitekto Elite se encargará de revisarlo.
+3. Mantén la conversación fluida. Si él te pregunta algo, responde basándote en lo que hablaron antes.
+4. Usa emojis para dar estilo "Premium" pero no exageres.
+5. Firma siempre como: 🤖 K-Agent | Kumbalo HQ
 """
 
-async def ask_gemini(user_message: str) -> str:
-    """Envía el mensaje a Google Gemini y retorna la respuesta inteligente."""
+async def ask_gemini(user_message: str, history: list = None) -> str:
+    """Envía el mensaje a Google Gemini con historial y retorna la respuesta."""
     if not GEMINI_API_KEY:
         return None
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     
+    # Construir el prompt con historial
+    contents = []
+    # 1. System Instruction (en Gemini 1.5 se puede pasar como system_instruction, pero aquí lo haremos en el primer mensaje)
+    contents.append({"role": "user", "parts": [{"text": f"INSTRUCCIÓN DE SISTEMA: {SYSTEM_PROMPT}"}]})
+    contents.append({"role": "model", "parts": [{"text": "Entendido, CEO. Soy K-Agent. Estoy listo para coordinar a los 18 agentes y hacer crecer Kumbalo. ¿Qué tienes en mente hoy?"}]})
+
+    # 2. Historial previo
+    if history:
+        for entry in history:
+            contents.append({"role": entry["role"], "parts": [{"text": entry["content"]}]})
+
+    # 3. Mensaje actual
+    contents.append({"role": "user", "parts": [{"text": user_message}]})
+
     payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [{"text": f"{SYSTEM_PROMPT}\n\n---\nMensaje del CEO (Brayan):\n{user_message}"}]
-            }
-        ],
+        "contents": contents,
         "generationConfig": {
-            "temperature": 0.7,
-            "maxOutputTokens": 400
+            "temperature": 0.8,
+            "maxOutputTokens": 800
         }
     }
     
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(url, json=payload)
             data = response.json()
             if response.status_code == 200:
@@ -70,33 +72,17 @@ async def ask_gemini(user_message: str) -> str:
                     parts = candidates[0].get("content", {}).get("parts", [])
                     if parts:
                         return parts[0].get("text", "")
-            return f"Error Gemini: {response.status_code} - {data}"
-    except Exception as e:
-        return f"Excepción Gemini: {str(e)}"
-    
-    return "Falla desconocida de Gemini"
-
-
-@router.get("/debug_gemini")
-async def debug_gemini(text: str = "Hola"):
-    res = await ask_gemini(text)
-    return {"result": res, "key_present": bool(GEMINI_API_KEY)}
+            return None
+    except Exception:
+        return None
 
 
 async def send_telegram_message(chat_id: int, text: str):
-    """Envía un mensaje por Telegram. Intenta sin formato si falla con Markdown."""
+    """Envía un mensaje por Telegram."""
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    
     async with httpx.AsyncClient(timeout=10.0) as client:
-        # Intento 1: sin parse_mode para máxima compatibilidad
         payload = {"chat_id": chat_id, "text": text}
-        resp = await client.post(url, json=payload)
-        
-        if resp.status_code != 200:
-            # Intento 2: texto cortado si es muy largo
-            short_text = text[:4000] if len(text) > 4000 else text
-            payload = {"chat_id": chat_id, "text": short_text}
-            await client.post(url, json=payload)
+        await client.post(url, json=payload)
 
 
 @router.post("/webhook")
@@ -116,60 +102,46 @@ async def telegram_webhook(request: Request):
     if not chat_id or not text:
         return {"status": "ok"}
 
-    # Comando /start
     if text.startswith("/start"):
-        welcome = (
-            "🏍 Bienvenido a KUMBALO HQ!\n\n"
-            "Soy K-Agent, tu asistente ejecutivo inteligente.\n"
-            "Puedo ayudarte con:\n"
-            "📊 Estado de la plataforma\n"
-            "💡 Ideas y estrategia de negocio\n"
-            "🔧 Asignar tareas a los 17 agentes\n"
-            "📈 Análisis y auditorías\n\n"
-            "Escríbeme lo que necesites y yo me encargo.\n\n"
-            "🤖 K-Agent | Kumbalo HQ"
-        )
+        welcome = "🏍 ¡K-Agent en línea! Estoy listo para trabajar contigo, CEO. ¿En qué enfocamos al equipo de 18 agentes hoy?"
         await send_telegram_message(chat_id, welcome)
         return {"status": "ok"}
 
-    # 1. Respuesta inteligente con Gemini
-    ai_response = await ask_gemini(text)
-    
-    if ai_response:
-        response_text = ai_response
-    else:
-        response_text = (
-            f"🤖 K-Agent\n"
-            f"────────────────\n"
-            f"He recibido tu mensaje: \"{text}\"\n\n"
-            f"Lo he registrado en el backlog. Los agentes lo procesarán en la próxima auditoría (12:00 PM).\n\n"
-            f"🤖 K-Agent | Kumbalo HQ"
-        )
-
-    # 2. Guardar en backlog
+    # 1. Obtener historial de la DB
+    history_entries = []
     try:
         from ..database import SessionLocal
         from .. import models
         db = SessionLocal()
-        try:
-            new_task = models.BacklogAgente(peticion=text, estado="pendiente")
-            db.add(new_task)
-            db.commit()
-        except Exception:
-            db.rollback()
-        finally:
-            db.close()
+        # Traer los últimos 10 mensajes del chat
+        recent = db.query(models.TelegramHistory).filter(models.TelegramHistory.chat_id == str(chat_id)).order_by(models.TelegramHistory.id.desc()).limit(10).all()
+        history_entries = [{"role": h.role, "content": h.content} for h in reversed(recent)]
+        db.close()
     except Exception:
         pass
 
-    # 3. Enviar respuesta
-    try:
-        await send_telegram_message(chat_id, response_text)
-    except Exception:
-        # Último intento: mensaje mínimo
-        try:
-            await send_telegram_message(chat_id, f"Recibido: {text}\n\n🤖 K-Agent")
-        except Exception:
-            pass
+    # 2. Respuesta inteligente con Gemini
+    ai_response = await ask_gemini(text, history_entries)
+    
+    if ai_response:
+        response_text = ai_response
+    else:
+        response_text = "Falla temporal en el enlace neuronal de Gemini. He anotado tu mensaje en el backlog y los agentes lo verán a las 12:00 PM."
 
+    # 3. Guardar en historial y backlog
+    try:
+        db = SessionLocal()
+        # Guardar mensaje del usuario
+        db.add(models.TelegramHistory(chat_id=str(chat_id), role="user", content=text))
+        # Guardar respuesta de la IA
+        db.add(models.TelegramHistory(chat_id=str(chat_id), role="model", content=response_text))
+        # Guardar en backlog general
+        db.add(models.BacklogAgente(peticion=text, estado="pendiente"))
+        db.commit()
+        db.close()
+    except Exception:
+        pass
+
+    # 4. Enviar respuesta
+    await send_telegram_message(chat_id, response_text)
     return {"status": "ok"}
