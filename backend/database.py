@@ -13,7 +13,12 @@ DATABASE_URL = os.getenv("POSTGRES_URL", os.getenv("STORAGE_URL", os.getenv("DAT
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-engine = create_engine(DATABASE_URL)
+# For databases like Supabase/Postgres, we might need SSL
+connect_args = {}
+if "postgresql" in DATABASE_URL:
+    connect_args = {"sslmode": "require"}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

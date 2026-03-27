@@ -11,9 +11,13 @@ from .limiter import limiter
 from .logging_config import logger, log_request
 
 # Crear tablas en DB si no existen
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="KUMBALO API")
+
+@app.on_event("startup")
+def on_startup():
+    models.Base.metadata.create_all(bind=engine)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
