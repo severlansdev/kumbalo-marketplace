@@ -12,7 +12,7 @@ class NotificationManager:
     
     def __init__(self):
         self.telegram_token = os.getenv("TELEGRAM_BOT_TOKEN", "8723148493:AAG6mHNqtgBsWc-9-3BcIALzxi4QxA3IBd8")
-        self.telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
+        self.telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "1597264470")
         self.discord_webhook = os.getenv("DISCORD_WEBHOOK_URL")
 
     def send_telegram(self, message: str):
