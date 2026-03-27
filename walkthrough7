@@ -1,0 +1,37 @@
+# Guía de Implementación: Kumbalo Marketplace 🚀
+
+He preparado el proyecto para que funcione de forma profesional en la nube, combinando **Vercel** para la web y **Telegram** para la autonomía de tus agentes.
+
+## 1. Configuración de Vercel (Frontend y Backend)
+El proyecto ya está listo para ser desplegado. Vercel servirá tus archivos HTML y el API de FastAPI como funciones seguras.
+
+### Cambios realizados:
+- **[vercel.json](file:///c:/Users/braya/OneDrive/Documentos/proyecto%20marketplace/vercel.json)**: Configura las rutas para que `/api/` vaya al backend.
+- **`api/index.py`**: El enlace que permite a Vercel ejecutar tu código Python.
+- **`backend/__init__.py`**: Activa la carpeta de backend como un paquete de Python.
+
+## 2. Autonomía y Notificaciones (Telegram)
+He creado el **"Cerebro de Autonomía"** para que tus 17 agentes trabajen solos y te informen al celular.
+
+### Cambios realizados:
+- **`scripts/notifications_manager.py`**: Configurado para hablar con tu bot **@Kumbalobot**.
+- **`scripts/autonomy_engine.py`**: El motor que realiza auditorías diarias de seguridad, marketing y finanzas.
+- **GitHub Action**: Una tarea automática que despierta a los agentes cada 24 horas.
+
+---
+
+## 🔑 PASO FINAL: Configurar las "Llaves" en GitHub
+Para que los agentes puedan enviarte mensajes desde la nube sin que tu PC esté encendida, debes poner estas dos llaves en GitHub:
+
+1.  Entra a tu repositorio en GitHub: `https://github.com/severlansdev/kumbalo-marketplace`.
+2.  Ve a la pestaña **Settings** (Ajustes) -> **Secrets and variables** -> **Actions**.
+3.  Haz clic en **"New repository secret"** y añade la primera llave:
+    - **Nombre (Name)**: `TELEGRAM_BOT_TOKEN`
+    - **Valor (Value)**: `8723148493:AAG6mHNqtgBsWc-9-3BcIALzxi4QxA3IBd8`
+4.  Haz clic otra vez en **"New repository secret"** y añade la segunda:
+    - **Nombre (Name)**: `TELEGRAM_CHAT_ID`
+    - **Valor (Value)**: `1597264470`
+
+**¡Listo!** Con esto, el sistema es 100% autónomo. Cada 24 horas recibirás un reporte en tu Telegram. 
+
+**¿Quieres que probemos algo más o ya estás listo para el lanzamiento?**

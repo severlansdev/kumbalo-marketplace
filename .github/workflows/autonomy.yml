@@ -2,7 +2,7 @@ name: Kumbalo Autonomy Core
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Ejecutar cada día a las 12 AM UTC
+    - cron: '0 17 * * *' # Ejecutar cada día a las 12 PM (Hora local Brayan / UTC-5)
   workflow_dispatch: # Permitir ejecución manual
 
 jobs:

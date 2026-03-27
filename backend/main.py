@@ -59,11 +59,12 @@ def health_check():
         "version": "1.0.0"
     }
 
-from .routers import auth, motos, mensajes, payments, chat, runt
+from .routers import auth, motos, mensajes, payments, chat, runt, telegram
 
 app.include_router(auth.router)
 app.include_router(motos.router)
 app.include_router(mensajes.router)
 app.include_router(payments.router)
 app.include_router(chat.router)
+app.include_router(telegram.router)
 app.include_router(runt.router, prefix="/api/v1/runt", tags=["RUNT Lead Magnet"])

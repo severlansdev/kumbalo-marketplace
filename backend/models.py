@@ -148,3 +148,15 @@ class Transaccion(Base):
     plataforma_pago = Column(String(50), nullable=True)  # stripe, payu, mercadopago
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class BacklogAgente(Base):
+    __tablename__ = "backlog_agentes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    peticion = Column(Text, nullable=False)
+    estado = Column(String(20), default="pendiente") # pendiente, en_proceso, completado
+    prioridad = Column(Integer, default=1)
+    agente_asignado = Column(String(100), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
