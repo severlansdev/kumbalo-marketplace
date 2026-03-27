@@ -85,6 +85,22 @@ async def send_telegram_message(chat_id: int, text: str):
         await client.post(url, json=payload)
 
 
+@router.get("/list_models")
+async def list_models():
+    if not GEMINI_API_KEY:
+        return {"error": "No API Key"}
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url)
+        return resp.json()
+
+
+@router.get("/debug_gemini")
+async def debug_gemini(text: str = "Hola"):
+    res = await ask_gemini(text)
+    return {"result": res, "key_present": bool(GEMINI_API_KEY)}
+
+
 @router.post("/webhook")
 async def telegram_webhook(request: Request):
     try:
