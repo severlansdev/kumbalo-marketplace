@@ -5,6 +5,14 @@ import traceback
 # Add the project root to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# --- Database Auto-Sync (Runs on Cold Start) ---
+try:
+    from backend.database import engine, Base
+    from backend import models
+    Base.metadata.create_all(bind=engine)
+except Exception:
+    pass
+
 try:
     from backend.main import app
 except Exception as e:

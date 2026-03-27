@@ -34,28 +34,28 @@ REGLAS DE INTERACCIÓN:
 """
 
 async def ask_gemini(user_message: str, history: list = None) -> str:
-    """Envía el mensaje a Google Gemini con historial y retorna la respuesta."""
+    """Envía el mensaje a Google Gemini con historial simplificado."""
     if not GEMINI_API_KEY:
         return None
     
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     
-    # Construir el prompt con historial
-    contents = []
-    # 1. System Instruction (en Gemini 1.5 se puede pasar como system_instruction, pero aquí lo haremos en el primer mensaje)
-    contents.append({"role": "user", "parts": [{"text": f"INSTRUCCIÓN DE SISTEMA: {SYSTEM_PROMPT}"}]})
-    contents.append({"role": "model", "parts": [{"text": "Entendido, CEO. Soy K-Agent. Estoy listo para coordinar a los 18 agentes y hacer crecer Kumbalo. ¿Qué tienes en mente hoy?"}]})
-
-    # 2. Historial previo
+    # 1. Construir un solo bloque de texto para máxima compatibilidad
+    full_prompt = f"{SYSTEM_PROMPT}\n\n---\nHISTORIAL DE CONVERSACIÓN:\n"
     if history:
         for entry in history:
-            contents.append({"role": entry["role"], "parts": [{"text": entry["content"]}]})
-
-    # 3. Mensaje actual
-    contents.append({"role": "user", "parts": [{"text": user_message}]})
-
+            label = "CEO (Brayan)" if entry["role"] == "user" else "K-Agent"
+            full_prompt += f"{label}: {entry['content']}\n"
+    
+    full_prompt += f"\nNUEVO MENSAJE DEL CEO:\n{user_message}"
+    
     payload = {
-        "contents": contents,
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": full_prompt}]
+            }
+        ],
         "generationConfig": {
             "temperature": 0.8,
             "maxOutputTokens": 800
