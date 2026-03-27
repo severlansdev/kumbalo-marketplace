@@ -41,6 +41,15 @@ elif "pg8000" in DATABASE_URL:
         connect_args = {"ssl_context": ssl_context}
 
 engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
+
+# Surgery for pg8000 + SQLAlchemy 2.x on Vercel/Neon
+from sqlalchemy import event
+@event.listens_for(engine, "do_connect")
+def receive_do_connect(dialect, conn_rec, cargs, cparams):
+    # pg8000 connect() doesn't accept 'channel_binding' in some versions/environments
+    cparams.pop("channel_binding", None)
+    cparams.pop("sslmode", None) # Also redundant as we use ssl_context
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
