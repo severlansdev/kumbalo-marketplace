@@ -1,6 +1,7 @@
 const API_URL = '/api';
 
 const api = {
+    baseUrl: window.location.origin + API_URL,
     // Manejo de tokens JWT
     getToken: () => localStorage.getItem('kumbalo_token'),
     setToken: (token) => localStorage.setItem('kumbalo_token', token),
