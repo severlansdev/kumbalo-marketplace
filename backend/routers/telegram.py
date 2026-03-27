@@ -14,19 +14,20 @@ Eres una IA altamente sofisticada que coordina un equipo de 18 agentes autónomo
 Habla en español colombiano profesional pero cercano. Firma siempre como: 🤖 K-Agent | Kumbalo HQ"""
 
 async def ask_gemini(user_message: str, history: list = None) -> str:
-    """REST implementation (no SDK) to avoid Vercel load issues."""
+    """Intenta con varios modelos de Gemini para encontrar uno con cuota y acceso."""
     if not GEMINI_API_KEY:
-        return "GEMINI_API_KEY not set"
+        return "GEMINI_API_KEY no configurada."
     
-    # 2.0 es el único que NO dio 404 anteriormente
+    # Priorizamos 2.0 porque es el que la cuenta reconoce (aunque diera 429)
+    # y probamos versiones experimentales que suelen tener cuota propia.
     models_to_try = [
-        "gemini-2.0-flash",
         "gemini-2.0-flash-exp",
+        "gemini-2.0-flash",
         "gemini-1.5-flash",
-        "gemini-1.5-pro"
+        "gemini-1.5-pro",
+        "gemini-pro"
     ]
     
-    # Construir prompt monolítico para evitar errores de rol
     full_prompt = f"{SYSTEM_PROMPT}\n\n"
     if history:
         for entry in history:
@@ -39,28 +40,37 @@ async def ask_gemini(user_message: str, history: list = None) -> str:
         "generationConfig": {"temperature": 0.8, "maxOutputTokens": 800}
     }
     
-    try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            response = await client.post(url, json=payload)
-            data = response.json()
-            if response.status_code == 200:
-                candidates = data.get("candidates", [])
-                if candidates:
-                    parts = candidates[0].get("content", {}).get("parts", [])
-                    if parts:
-                        return parts[0].get("text", "")
-            
-            # Si da 404, intentar con v1beta y otro nombre
-            if response.status_code == 404:
-                url_alt = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
-                resp_alt = await client.post(url_alt, json=payload)
-                data_alt = resp_alt.json()
-                if resp_alt.status_code == 200:
-                    return data_alt.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+    last_error = ""
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        for model in models_to_try:
+            # Intentar primero con v1beta (más flexible para modelos nuevos)
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
+            try:
+                response = await client.post(url, json=payload)
+                data = response.json()
+                if response.status_code == 200:
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts:
+                            return parts[0].get("text", "")
                 
-            return f"Error {response.status_code}: {str(data)[:200]}"
-    except Exception as e:
-        return f"Excepción REST: {str(e)}"
+                # Si es 429 (Agotado), seguimos al siguiente modelo
+                # Si es 404 (No encontrado), seguimos al siguiente modelo
+                last_error = f"{model} ({response.status_code})"
+                
+                # Caso especial: si es 404, intentar con v1 (estable) antes de saltar
+                if response.status_code == 404:
+                    url_v1 = f"https://generativelanguage.googleapis.com/v1/models/{model}:generateContent?key={GEMINI_API_KEY}"
+                    resp_v1 = await client.post(url_v1, json=payload)
+                    if resp_v1.status_code == 200:
+                        data_v1 = resp_v1.json()
+                        return data_v1.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+
+            except Exception as e:
+                last_error = f"{model} exc: {str(e)}"
+    
+    return f"Sinergia Fallida. Último intento: {last_error}. CEO, por favor verifica si la API Key en Vercel es correcta o si tiene habilitado Gemini 1.5/2.0 en AI Studio."
 
 @router.post("/webhook")
 async def telegram_webhook(request: Request):
