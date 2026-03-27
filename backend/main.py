@@ -3,7 +3,22 @@ import sys
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="KUMBALO API")
+app = FastAPI(title="KUMBALO API", debug=True)
+
+# --- Global Exception Handler ---
+import traceback
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": str(exc),
+            "traceback": traceback.format_exc(),
+            "path": str(request.url.path)
+        }
+    )
 
 # --- Guarded heavy imports (may fail on serverless) ---
 try:
