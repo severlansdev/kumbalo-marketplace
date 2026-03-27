@@ -63,17 +63,24 @@ async def ask_gemini(user_message: str) -> str:
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(url, json=payload)
+            data = response.json()
             if response.status_code == 200:
-                data = response.json()
                 candidates = data.get("candidates", [])
                 if candidates:
                     parts = candidates[0].get("content", {}).get("parts", [])
                     if parts:
                         return parts[0].get("text", "")
-    except Exception:
-        pass
+            return f"Error Gemini: {response.status_code} - {data}"
+    except Exception as e:
+        return f"Excepción Gemini: {str(e)}"
     
-    return None
+    return "Falla desconocida de Gemini"
+
+
+@router.get("/debug_gemini")
+async def debug_gemini(text: str = "Hola"):
+    res = await ask_gemini(text)
+    return {"result": res, "key_present": bool(GEMINI_API_KEY)}
 
 
 async def send_telegram_message(chat_id: int, text: str):
