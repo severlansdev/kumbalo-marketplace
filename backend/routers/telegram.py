@@ -72,9 +72,9 @@ async def ask_gemini(user_message: str, history: list = None) -> str:
                     parts = candidates[0].get("content", {}).get("parts", [])
                     if parts:
                         return parts[0].get("text", "")
-            return None
-    except Exception:
-        return None
+            return f"Error Gemini {response.status_code}: {str(data)[:200]}"
+    except Exception as e:
+        return f"Excepción técnica: {str(e)}"
 
 
 async def send_telegram_message(chat_id: int, text: str):
