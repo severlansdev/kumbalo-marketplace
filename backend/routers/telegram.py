@@ -34,47 +34,43 @@ REGLAS DE INTERACCIÓN:
 """
 
 async def ask_gemini(user_message: str, history: list = None) -> str:
-    """Envía el mensaje a Google Gemini con historial simplificado."""
+    """Intenta con varios modelos de Gemini hasta encontrar uno activo."""
     if not GEMINI_API_KEY:
         return None
     
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    models_to_try = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro"]
     
-    # 1. Construir un solo bloque de texto para máxima compatibilidad
+    # Construir el prompt
     full_prompt = f"{SYSTEM_PROMPT}\n\n---\nHISTORIAL DE CONVERSACIÓN:\n"
     if history:
         for entry in history:
             label = "CEO (Brayan)" if entry["role"] == "user" else "K-Agent"
             full_prompt += f"{label}: {entry['content']}\n"
-    
     full_prompt += f"\nNUEVO MENSAJE DEL CEO:\n{user_message}"
     
     payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [{"text": full_prompt}]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.8,
-            "maxOutputTokens": 800
-        }
+        "contents": [{"role": "user", "parts": [{"text": full_prompt}]}],
+        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 800}
     }
+
+    last_err = ""
+    for model_name in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(url, json=payload)
+                data = response.json()
+                if response.status_code == 200:
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts:
+                            return parts[0].get("text", "")
+                last_err = f"{model_name} err {response.status_code}"
+        except Exception as e:
+            last_err = f"{model_name} exc {str(e)}"
     
-    try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            response = await client.post(url, json=payload)
-            data = response.json()
-            if response.status_code == 200:
-                candidates = data.get("candidates", [])
-                if candidates:
-                    parts = candidates[0].get("content", {}).get("parts", [])
-                    if parts:
-                        return parts[0].get("text", "")
-            return f"Error Gemini {response.status_code}: {str(data)[:200]}"
-    except Exception as e:
-        return f"Excepción técnica: {str(e)}"
+    return f"Falla Crítica de Modelos: {last_err}"
 
 
 async def send_telegram_message(chat_id: int, text: str):
