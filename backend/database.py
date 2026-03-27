@@ -2,23 +2,27 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env only if dotenv is available (local dev)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 # We construct the URL from env variables (Vercel uses POSTGRES_URL or STORAGE_URL)
-DATABASE_URL = os.getenv("POSTGRES_URL", os.getenv("STORAGE_URL", os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/marketplace")))
+DATABASE_URL = os.getenv("POSTGRES_URL", os.getenv("STORAGE_URL", os.getenv("DATABASE_URL", "sqlite:///./test.db")))
 
-# Vercel's postgres:// needs to be changed to postgresql:// for SQLAlchemy if it's not already
+# Vercel's postgres:// needs to be changed to postgresql:// for SQLAlchemy
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# For databases like Supabase/Postgres, we might need SSL
+# Build engine with appropriate arguments
 connect_args = {}
-if "postgresql" in DATABASE_URL:
-    connect_args = {"sslmode": "require"}
+if "sqlite" in DATABASE_URL:
+    connect_args = {"check_same_thread": False}
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
