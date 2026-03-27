@@ -38,7 +38,14 @@ async def ask_gemini(user_message: str, history: list = None) -> str:
     if not GEMINI_API_KEY:
         return None
     
-    models_to_try = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro"]
+    models_to_try = [
+        "gemini-1.5-flash-latest", 
+        "gemini-1.5-flash", 
+        "gemini-1.5-flash-8b-latest", 
+        "gemini-1.5-flash-002",
+        "gemini-1.5-pro-latest",
+        "gemini-1.0-pro"
+    ]
     
     # Construir el prompt
     full_prompt = f"{SYSTEM_PROMPT}\n\n---\nHISTORIAL DE CONVERSACIÓN:\n"
