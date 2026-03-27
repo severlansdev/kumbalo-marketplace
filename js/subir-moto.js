@@ -108,8 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const estimatedPrice = (base * yearMult) + engineAdd;
         
-        }
-        
         // --- Nueva Lógica de Comisión Fija "Adiós al 3%" ---
         const updateCommission = (price) => {
             const commWidget = document.getElementById('commissionWidget');
@@ -140,6 +138,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 savingsMsg.style.display = 'none';
             }
         };
+
+        // Análisis del Tasador IA
+        if(IP <= estimatedPrice * 0.90) {
+            widget.style.borderColor = 'var(--success)';
+            widget.style.backgroundColor = '#ecfdf5';
+            feedbackMsg.innerHTML = '<strong>¡Precio Excelente! 🔥</strong> Tu moto está tasada por debajo del mercado. ¡Se venderá rapidísimo!';
+            feedbackMsg.style.color = 'var(--success-dark)';
+        } else if (IP <= estimatedPrice * 1.15) {
+            widget.style.borderColor = '#3b82f6';
+            widget.style.backgroundColor = '#eff6ff';
+            feedbackMsg.innerHTML = '<strong>Precio Justo ✅</strong> El valor está dentro del promedio nacional para esta marca, año y cilindraje.';
+            feedbackMsg.style.color = '#1d4ed8';
+        } else {
+            widget.style.borderColor = 'var(--orange)';
+            widget.style.backgroundColor = '#fff7ed';
+            feedbackMsg.innerHTML = '<strong>Precio Alto ⚠️</strong> El precio es un poco más alto que el promedio estatal. Esto podría ralentizar la venta. Considera ajustarlo.';
+            feedbackMsg.style.color = '#c2410c';
+        }
         
         updateCommission(IP);
     };
