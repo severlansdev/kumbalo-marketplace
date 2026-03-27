@@ -45,6 +45,10 @@ class Token(BaseModel):
     user: UserResponse
 
 
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
+
 # ============ MOTOS ============
 class MotoImagenResponse(BaseModel):
     id: int
