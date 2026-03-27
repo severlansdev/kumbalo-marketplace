@@ -63,10 +63,15 @@ def read_root():
 @app.get("/api/v1/health")
 @app.get("/health")
 def health_check():
+    import os
     return {
         "status": "healthy",
         "service": "kumbalo-api",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "env_checks": {
+            "gemini_api_key": "set" if os.getenv("GEMINI_API_KEY") else "missing",
+            "telegram_bot_token": "set" if os.getenv("TELEGRAM_BOT_TOKEN") else "using_default"
+        }
     }
 
 # --- Routers (guarded) ---
