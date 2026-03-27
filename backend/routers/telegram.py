@@ -39,12 +39,10 @@ async def ask_gemini(user_message: str, history: list = None) -> str:
         return None
     
     models_to_try = [
+        "gemini-2.0-flash-exp",
+        "gemini-2.0-flash",
         "gemini-1.5-flash-latest", 
-        "gemini-1.5-flash", 
         "gemini-1.5-flash-8b-latest", 
-        "gemini-1.5-flash-002",
-        "gemini-1.5-pro-latest",
-        "gemini-1.0-pro"
     ]
     
     # Construir el prompt
