@@ -10,6 +10,12 @@ try:
     from backend.database import engine, Base
     from backend import models
     Base.metadata.create_all(bind=engine)
+    
+    # Manual Migration for existing tables
+    from sqlalchemy import text
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE motos ADD COLUMN IF NOT EXISTS commission_fee FLOAT DEFAULT 0.0;"))
+        conn.execute(text("ALTER TABLE motos ADD COLUMN IF NOT EXISTS commission_type VARCHAR(20) DEFAULT 'fixed';"))
 except Exception:
     pass
 
