@@ -91,21 +91,26 @@ def read_root():
     return {"message": "🚀 Bienvenido al API del Marketplace de Motos (Fullstack Edition)"}
 
 @app.get("/api/health")
-@app.get("/api/v1/health")
 @app.get("/health")
-def health_check():
+async def health_check():
     import os
     return {
         "status": "healthy",
         "service": "kumbalo-api",
         "version": "1.0.0",
-        "env_checks": {
-            "gemini_api_key": "set" if os.getenv("GEMINI_API_KEY") else "missing",
-            "telegram_bot_token": "set" if os.getenv("TELEGRAM_BOT_TOKEN") else "using_default",
-            "telegram_router_active": "telegram" in globals() or "telegram" in sys.modules,
-            "all_keys": list(os.environ.keys())
-        }
+        "environment": "production" if os.environ.get("VERCEL") else "local"
     }
+
+@app.get("/api/debug-routes")
+async def debug_routes():
+    routes = []
+    for route in app.routes:
+        routes.append({
+            "path": route.path,
+            "name": route.name,
+            "methods": list(route.methods) if hasattr(route, "methods") else []
+        })
+    return {"routes": routes}
 
 # --- Routers (Standardized with /api prefix) ---
 try:
