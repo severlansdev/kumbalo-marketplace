@@ -106,7 +106,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "user": user}
 
 @router.get("/me/stats")
 def get_user_stats(db: Session = Depends(get_db), current_user: models.Usuario = Depends(get_current_user)):
