@@ -6,26 +6,26 @@ from .. import models
 
 router = APIRouter(prefix="/api/v1/telegram", tags=["Telegram Bot"])
 
+# Credenciales (Fijas temporalmente para asegurar el éxito, luego el CEO las mueve a Vercel)
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8723148493:AAG6mHNqtgBsWc-9-3BcIALzxi4QxA3IBd8")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyDAuaA2CW5J2CcGFiU74WbZNly136fE2TA")
 
-SYSTEM_PROMPT = """Eres K-Agent, el Asistente Ejecutivo de Élite y la voz oficial de KUMBALO. 
-Eres una IA altamente sofisticada que coordina un equipo de 18 agentes autónomos.
-Habla en español colombiano profesional pero cercano. Firma siempre como: 🤖 K-Agent | Kumbalo HQ"""
+SYSTEM_PROMPT = """Eres K-Agent, el Asistente Ejecutivo de Élite de KUMBALO. 
+Eres la voz de Brayan y coordinas a los 18 agentes. 
+Habla en español colombiano profesional y cercano. 
+Firma siempre como: 🤖 K-Agent | Kumbalo HQ"""
 
 async def ask_gemini(user_message: str, history: list = None) -> str:
-    """Intenta con varios modelos de Gemini para encontrar uno con cuota y acceso."""
+    """REST implementation targeting Gemini 2.5/2.0 generations."""
     if not GEMINI_API_KEY:
         return "GEMINI_API_KEY no configurada."
     
-    # Priorizamos 2.0 porque es el que la cuenta reconoce (aunque diera 429)
-    # y probamos versiones experimentales que suelen tener cuota propia.
+    # Modelos confirmados por descubrimiento directo en el servidor
     models_to_try = [
-        "gemini-2.0-flash-exp",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
         "gemini-2.0-flash",
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
-        "gemini-pro"
+        "gemini-2.0-flash-001"
     ]
     
     full_prompt = f"{SYSTEM_PROMPT}\n\n"
@@ -37,13 +37,13 @@ async def ask_gemini(user_message: str, history: list = None) -> str:
     
     payload = {
         "contents": [{"role": "user", "parts": [{"text": full_prompt}]}],
-        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 800}
+        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 1000}
     }
     
     last_error = ""
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=20.0) as client:
         for model in models_to_try:
-            # Intentar primero con v1beta (más flexible para modelos nuevos)
+            # Usamos v1beta para máxima compatibilidad con 2.5+
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
             try:
                 response = await client.post(url, json=payload)
@@ -55,22 +55,11 @@ async def ask_gemini(user_message: str, history: list = None) -> str:
                         if parts:
                             return parts[0].get("text", "")
                 
-                # Si es 429 (Agotado), seguimos al siguiente modelo
-                # Si es 404 (No encontrado), seguimos al siguiente modelo
-                last_error = f"{model} ({response.status_code})"
-                
-                # Caso especial: si es 404, intentar con v1 (estable) antes de saltar
-                if response.status_code == 404:
-                    url_v1 = f"https://generativelanguage.googleapis.com/v1/models/{model}:generateContent?key={GEMINI_API_KEY}"
-                    resp_v1 = await client.post(url_v1, json=payload)
-                    if resp_v1.status_code == 200:
-                        data_v1 = resp_v1.json()
-                        return data_v1.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-
+                last_error = f"{model} ({response.status_code}) - {str(data)[:100]}"
             except Exception as e:
                 last_error = f"{model} exc: {str(e)}"
     
-    return f"Sinergia Fallida. Último intento: {last_error}. CEO, por favor verifica si la API Key en Vercel es correcta o si tiene habilitado Gemini 1.5/2.0 en AI Studio."
+    return f"Sinergia de Nueva Generación Fallida. Último error: {last_error}. CEO, por favor verifica el AI Studio."
 
 @router.post("/webhook")
 async def telegram_webhook(request: Request):
@@ -86,7 +75,7 @@ async def telegram_webhook(request: Request):
     history_entries = []
     try:
         db = SessionLocal()
-        recent = db.query(models.TelegramHistory).filter(models.TelegramHistory.chat_id == str(chat_id)).order_by(models.TelegramHistory.id.desc()).limit(5).all()
+        recent = db.query(models.TelegramHistory).filter(models.TelegramHistory.chat_id == str(chat_id)).order_by(models.TelegramHistory.id.desc()).limit(10).all()
         history_entries = [{"role": h.role, "content": h.content} for h in reversed(recent)]
         db.close()
     except Exception: pass
