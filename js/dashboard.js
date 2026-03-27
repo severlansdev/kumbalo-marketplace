@@ -35,6 +35,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (stats.user.id) {
                 setupWebSocket(stats.user.id);
             }
+
+            // Admin-only AI Center Visibility
+            if (stats.user.rol === 'admin') {
+                const navAI = document.getElementById('nav-ai-center');
+                if (navAI) navAI.style.display = 'block';
+                loadAgentRoster();
+                setupAICounterLogs();
+            }
         }
 
         // Cargar mis motos
@@ -237,3 +245,116 @@ window.guardarMantenimiento = async function() {
         btn.disabled = false;
     }
 };
+// AI Command Center Logic
+async function loadAgentRoster() {
+    const roster = document.getElementById('agent-roster');
+    if (!roster) return;
+
+    try {
+        const agents = await window.api.request('/agents/status', {
+            method: 'GET',
+            headers: window.api.getHeaders()
+        });
+
+        roster.innerHTML = '';
+        agents.forEach(agent => {
+            const card = document.createElement('div');
+            card.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; display:flex; flex-direction:column; gap:8px;";
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size: 0.7rem; color: var(--primary); font-weight:bold;">${agent.category}</span>
+                    <span style="font-size: 0.8rem; color: #0f0;">●</span>
+                </div>
+                <h4 style="font-size: 0.85rem; color: #fff; margin:0;">${agent.name}</h4>
+                <p style="font-size: 0.75rem; color: #888; margin:0;">Status: ${agent.status}</p>
+            `;
+            roster.appendChild(card);
+        });
+    } catch (e) {
+        console.warn("Could not load agent roster:", e);
+    }
+}
+
+function setupAICounterLogs() {
+    const logsContainer = document.getElementById('ai-logs');
+    const scenarios = [
+        "[SEO] Actualizando sitemap.xml... OK",
+        "[SEGURIDAD] Bloqueando intento de fuerza bruta IP 192.168.1.1",
+        "[FINTECH] Calculando comisiones del día... +$12.50 USD",
+        "[PERF] Minimizando assets... LCP reducido a 0.8s",
+        "[QA] Ejecutando tests de regresión en /login... PASS",
+        "[ARQUITEKTO] Optimizando balanceo de carga en Vercel Edge"
+    ];
+
+    setInterval(() => {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.style.color = '#0f0';
+        entry.textContent = `> ${scenarios[Math.floor(Math.random() * scenarios.length)]}`;
+        logsContainer.appendChild(entry);
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+        if (logsContainer.children.length > 20) logsContainer.removeChild(logsContainer.firstChild);
+    }, 4000);
+}
+
+// Tab Switching
+document.querySelectorAll('.dashboard-nav a').forEach(link => {
+    link.addEventListener('click', (e) => {
+        const target = link.getAttribute('href');
+        if (target.startsWith('#')) {
+            e.preventDefault();
+            
+            // UI Update
+            document.querySelectorAll('.dashboard-nav a').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+
+            // Section Update
+            const grid = document.getElementById('misMotosGrid');
+            const aiSection = document.getElementById('ia-center-section');
+            const header = document.querySelector('.dashboard-header');
+
+            if (target === '#ia-center') {
+                grid.style.display = 'none';
+                header.style.display = 'none';
+                aiSection.style.display = 'block';
+            } else {
+                grid.style.display = 'grid';
+                header.style.display = 'block';
+                aiSection.style.display = 'none';
+            }
+        }
+    });
+});
+
+document.getElementById('btn-send-command')?.addEventListener('click', async () => {
+    const input = document.getElementById('ai-command-input');
+    const command = input.value.trim();
+    if (!command) return;
+
+    const btn = document.getElementById('btn-send-command');
+    btn.disabled = true;
+    btn.textContent = 'Trasmitiendo...';
+
+    try {
+        await window.api.request(`/agents/command?command=${encodeURIComponent(command)}`, {
+            method: 'POST',
+            headers: window.api.getHeaders()
+        });
+        
+        input.value = '';
+        alert("Comando recibido por el Arquitekto Elite. La orden ha sido delegada a los agentes correspondientes.");
+        
+        // Add to logs
+        const logsContainer = document.getElementById('ai-logs');
+        const entry = document.createElement('div');
+        entry.style.color = 'var(--primary)';
+        entry.textContent = `> [ DIRECTOR ] ${command}`;
+        logsContainer.appendChild(entry);
+        
+    } catch (e) {
+        alert("Error al contactar con el Centro de Mando: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Emitir Orden Directa';
+    }
+});

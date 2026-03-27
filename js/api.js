@@ -1,4 +1,6 @@
-const API_URL = '/api';
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+    ? 'http://localhost:8000' 
+    : '/api';
 
 const api = {
     // Manejo de tokens JWT
@@ -25,10 +27,19 @@ const api = {
         try {
             const response = await fetch(`${API_URL}${endpoint}`, options);
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Ocurrió un error en la solicitud');
+                let errorData = { detail: 'Error de conexión o recurso no encontrado' };
+                try {
+                    errorData = await response.json();
+                } catch(e) {
+                    console.warn("Server response was not JSON:", response.status);
+                }
+                throw new Error(errorData.detail || 'Error en la solicitud');
             }
-            return await response.json();
+            try {
+                return await response.json();
+            } catch(e) {
+                return { status: 'ok' }; // Fallback for success without body
+            }
         } catch (error) {
             console.error('API Error:', error);
             throw error;
@@ -39,12 +50,14 @@ const api = {
     auth: {
         login: async (email, password) => {
             const formData = new FormData();
-            formData.append('username', email); // Para OAuth2PasswordRequestForm
+            formData.append('username', email);
             formData.append('password', password);
             
+            // Enviamos sin cabeceras manuales para que el navegador gestione el Content-Type de FormData
             const data = await api.request('/auth/login', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {} 
             });
             api.setToken(data.access_token);
             return data;

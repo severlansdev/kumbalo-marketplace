@@ -128,7 +128,8 @@ def get_user_stats(db: Session = Depends(get_db), current_user: models.Usuario =
             "nombre": current_user.nombre,
             "email": current_user.email,
             "tipo_cuenta": current_user.tipo_cuenta,
-            "is_pro": current_user.is_pro
+            "is_pro": current_user.is_pro,
+            "rol": current_user.rol
         }
     }
 

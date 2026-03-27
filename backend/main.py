@@ -27,10 +27,40 @@ from . import models
 
 @app.on_event("startup")
 def on_startup():
+    from .database import SessionLocal
+    from . import models
+    try:
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    except ImportError:
+        print("⚠️ [WARN] Passlib/Bcrypt not found. Admin setup skipped.")
+        return
+
     try:
         models.Base.metadata.create_all(bind=engine)
-    except Exception:
-        pass  # DB may not be available on cold start
+        db = SessionLocal()
+        email = "brayanpd23@gmail.com"
+        user = db.query(models.Usuario).filter(models.Usuario.email == email).first()
+        
+        if not user:
+            new_admin = models.Usuario(
+                nombre="Director Kumbalo",
+                email=email,
+                hashed_password=pwd_context.hash("admin123"),
+                rol="admin",
+                tipo_cuenta="concesionario",
+                is_pro=True
+            )
+            db.add(new_admin)
+            db.commit()
+            print(f"✅ [SETUP] Created Admin: {email}")
+        elif user.rol != "admin":
+            user.rol = "admin"
+            db.commit()
+            print(f"🛡️ [SETUP] Promoted: {email}")
+        db.close()
+    except Exception as e:
+        print(f"❌ [STARTUP_ERROR] {e}")
 
 # --- CORS ---
 app.add_middleware(
@@ -113,6 +143,12 @@ try:
     app.include_router(telegram.router)
 except Exception as e:
     print(f"[WARN] Could not load telegram router: {e}")
+
+try:
+    from .routers import agents
+    app.include_router(agents.router, prefix="/api/v1")
+except Exception as e:
+    print(f"[WARN] Could not load agents router: {e}")
 
 try:
     from .routers import runt
