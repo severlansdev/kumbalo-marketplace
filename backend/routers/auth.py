@@ -63,9 +63,9 @@ async def get_current_admin(current_user: models.Usuario = Depends(get_current_u
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permisos de Administrador")
     return current_user
 
-@router.post("/register", response_model=schemas.UsuarioResponse)
+@router.post("/register", response_model=schemas.UserResponse)
 @limiter.limit("5/minute")
-def register(request: Request, user: schemas.UsuarioCreate, db: Session = Depends(get_db)):
+def register(request: Request, user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(models.Usuario).filter(models.Usuario.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
