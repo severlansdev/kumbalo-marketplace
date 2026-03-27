@@ -1,0 +1,28 @@
+name: Kumbalo Autonomy Core
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Ejecutar cada día a las 12 AM UTC
+  workflow_dispatch: # Permitir ejecución manual
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests python-dotenv
+
+      - name: Run Autonomy Audit
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/autonomy_engine.py

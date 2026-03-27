@@ -11,31 +11,28 @@ class NotificationManager:
     """
     
     def __init__(self):
-        self.whatsapp_number = os.getenv("WHATSAPP_NUMBER", "+573016702548")
-        self.whatsapp_api_url = os.getenv("WHATSAPP_API_URL") # Ejemplo: Twilio o Wati
-        self.whatsapp_token = os.getenv("WHATSAPP_API_TOKEN")
+        self.telegram_token = os.getenv("TELEGRAM_BOT_TOKEN", "8723148493:AAG6mHNqtgBsWc-9-3BcIALzxi4QxA3IBd8")
+        self.telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
         self.discord_webhook = os.getenv("DISCORD_WEBHOOK_URL")
 
-    def send_whatsapp(self, message: str):
-        """Envía una notificación de WhatsApp al Director."""
-        if not self.whatsapp_api_url or not self.whatsapp_token:
-            print(f"[LOG] Notificación WhatsApp (Simulada): {message}")
+    def send_telegram(self, message: str):
+        """Envía una notificación de Telegram al Director (Brayan)."""
+        if not self.telegram_token or not self.telegram_chat_id:
+            print(f"[LOG] Notificación Telegram (Simulada): {message}")
             return False
             
+        url = f"https://api.telegram.org/bot{self.telegram_token}/sendMessage"
         payload = {
-            "to": self.whatsapp_number,
-            "message": message
-        }
-        headers = {
-            "Authorization": f"Bearer {self.whatsapp_token}",
-            "Content-Type": "application/json"
+            "chat_id": self.telegram_chat_id,
+            "text": message,
+            "parse_mode": "Markdown"
         }
         
         try:
-            response = requests.post(self.whatsapp_api_url, json=payload, headers=headers)
+            response = requests.post(url, json=payload)
             return response.status_code == 200
         except Exception as e:
-            print(f"[ERROR] Error enviando WhatsApp: {e}")
+            print(f"[ERROR] Error enviando Telegram: {e}")
             return False
 
     def send_approval_request(self, agent_name: str, proposal_title: str, link: str):
@@ -45,9 +42,9 @@ class NotificationManager:
             f"🤖 *Agente*: {agent_name}\n"
             f"📝 *Propuesta*: {proposal_title}\n"
             f"🔗 *Revisar aquí*: {link}\n\n"
-            f"Responde 'SÍ' para autorizar el despliegue automático."
+            f"Responde a este mensaje para autorizar el cambio."
         )
-        return self.send_whatsapp(msg)
+        return self.send_telegram(msg)
 
 # Instancia global para ser usada por otros scripts de agentes
 notifier = NotificationManager()
