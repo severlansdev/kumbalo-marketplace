@@ -13,14 +13,23 @@ except ImportError:
 # We construct the URL from env variables (Vercel uses POSTGRES_URL or STORAGE_URL)
 DATABASE_URL = os.getenv("POSTGRES_URL", os.getenv("STORAGE_URL", os.getenv("DATABASE_URL", "sqlite:///./test.db")))
 
-# Vercel's postgres:// needs to be changed to postgresql:// for SQLAlchemy
+# Vercel's postgres:// needs to be changed to postgresql+pg8000:// for SQLAlchemy with pure Python driver
 if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+pg8000://", 1)
+elif DATABASE_URL.startswith("postgresql://") and "+pg8000" not in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+pg8000://", 1)
 
 # Build engine with appropriate arguments
 connect_args = {}
 if "sqlite" in DATABASE_URL:
     connect_args = {"check_same_thread": False}
+elif "pg8000" in DATABASE_URL:
+    # pg8000 uses ssl_context for SSL connections
+    import ssl
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    connect_args = {"ssl_context": ssl_context}
 
 engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
