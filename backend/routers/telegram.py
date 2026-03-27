@@ -85,10 +85,18 @@ async def send_telegram_message(chat_id: int, text: str):
 async def list_models():
     if not GEMINI_API_KEY:
         return {"error": "No API Key"}
-    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url)
-        return resp.json()
+    
+    results = {}
+    for ver in ["v1", "v1beta"]:
+        url = f"https://generativelanguage.googleapis.com/{ver}/models?key={GEMINI_API_KEY}"
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(url)
+                results[ver] = resp.json()
+        except Exception as e:
+            results[ver] = str(e)
+    
+    return results
 
 
 @router.get("/debug_gemini")
