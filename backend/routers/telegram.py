@@ -18,9 +18,13 @@ async def ask_gemini(user_message: str, history: list = None) -> str:
     if not GEMINI_API_KEY:
         return "GEMINI_API_KEY not set"
     
-    # Intentaremos con el modelo más probable que responda
-    model_name = "gemini-1.5-flash"
-    url = f"https://generativelanguage.googleapis.com/v1/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+    # 2.0 es el único que NO dio 404 anteriormente
+    models_to_try = [
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-exp",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro"
+    ]
     
     # Construir prompt monolítico para evitar errores de rol
     full_prompt = f"{SYSTEM_PROMPT}\n\n"
