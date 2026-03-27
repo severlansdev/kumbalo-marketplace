@@ -738,21 +738,32 @@
                                 <span class="error-message" id="priceError"></span>
                             </div>
 
-                            <!-- Smart Pricing Widget -->
-                            <div id="pricingWidget" style="margin-top: 20px; padding: 15px; border-radius: var(--radius-md); background: var(--gray-light); display: block; border-left: 4px solid var(--primary); transition: all 0.3s ease;">
-                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
-                                        <path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2z"/>
-                                        <path d="M12 2v20"/>
-                                        <path d="M2 12h20"/>
-                                        <path d="M12 12h.01"/>
-                                    </svg>
-                                    <h4 style="margin: 0; color: var(--secondary); font-family: var(--font-family-display);">Tasador IA en Tiempo Real</h4>
+                                <!-- Smart Pricing Widget -->
+                                <div id="pricingWidget" style="margin-top: 20px; padding: 15px; border-radius: var(--radius-md); background: var(--gray-light); display: block; border-left: 4px solid var(--primary); transition: all 0.3s ease;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+                                            <path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2z"/>
+                                            <path d="M12 2v20"/>
+                                            <path d="M2 12h20"/>
+                                            <path d="M12 12h.01"/>
+                                        </svg>
+                                        <h4 style="margin: 0; color: var(--secondary); font-family: var(--font-family-display);">Tasador IA en Tiempo Real</h4>
+                                    </div>
+                                    <p id="pricingFeedbackMessage" style="font-size: 0.9rem; color: var(--gray-dark); margin: 0; line-height: 1.4;">
+                                        Calculando valor justo del mercado basándonos en marca y año...
+                                    </p>
                                 </div>
-                                <p id="pricingFeedbackMessage" style="font-size: 0.9rem; color: var(--gray-dark); margin: 0; line-height: 1.4;">
-                                    Calculando valor justo del mercado basándonos en marca y año...
-                                </p>
-                            </div>
+
+                                <!-- Commission Savings Widget -->
+                                <div id="commissionWidget" style="margin-top: 15px; padding: 15px; border-radius: var(--radius-md); background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #0f172a; display: none;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <h4 style="margin: 0; color: #0f172a; font-family: var(--font-family-display); font-size: 1rem;">Comisión Kumbalo</h4>
+                                        <span id="commissionValue" style="font-weight: 900; color: var(--primary); font-size: 1.2rem;">$0</span>
+                                    </div>
+                                    <div id="savingsMessage" style="background: var(--success); color: white; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; text-align: center;">
+                                        📉 Ahorras $0 frente al 3% tradicional
+                                    </div>
+                                </div>
                         </div>
 
                         <!-- Sección 6: Ubicación -->

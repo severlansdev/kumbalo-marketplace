@@ -108,26 +108,40 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const estimatedPrice = (base * yearMult) + engineAdd;
         
-        // Análisis
-        if(IP <= estimatedPrice * 0.90) {
-            // Favorable
-            widget.style.borderColor = 'var(--success)';
-            widget.style.backgroundColor = '#ecfdf5';
-            feedbackMsg.innerHTML = '<strong>¡Precio Excelente! 🔥</strong> Tu moto está tasada por debajo del mercado. ¡Se venderá rapidísimo!';
-            feedbackMsg.style.color = 'var(--success-dark)';
-        } else if (IP <= estimatedPrice * 1.15) {
-            // Justo
-            widget.style.borderColor = '#3b82f6';
-            widget.style.backgroundColor = '#eff6ff';
-            feedbackMsg.innerHTML = '<strong>Precio Justo ✅</strong> El valor está dentro del promedio nacional para esta marca, año y cilindraje.';
-            feedbackMsg.style.color = '#1d4ed8';
-        } else {
-            // Alto
-            widget.style.borderColor = 'var(--orange)';
-            widget.style.backgroundColor = '#fff7ed';
-            feedbackMsg.innerHTML = '<strong>Precio Alto ⚠️</strong> El precio es un poco más alto que el promedio estatal. Esto podría ralentizar la venta. Considera ajustarlo.';
-            feedbackMsg.style.color = '#c2410c';
         }
+        
+        // --- Nueva Lógica de Comisión Fija "Adiós al 3%" ---
+        const updateCommission = (price) => {
+            const commWidget = document.getElementById('commissionWidget');
+            const commValueLabel = document.getElementById('commissionValue');
+            const savingsMsg = document.getElementById('savingsMessage');
+            
+            if(!commWidget) return;
+            
+            if(!price || price < 500000) {
+                commWidget.style.display = 'none';
+                return;
+            }
+            
+            commWidget.style.display = 'block';
+            let fee = 150000;
+            if(price >= 20000000) fee = 500000;
+            else if(price >= 10000000) fee = 250000;
+            
+            const traditional3Percent = price * 0.03;
+            const savings = traditional3Percent - fee;
+            
+            commValueLabel.innerText = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(fee);
+            
+            if(savings > 0) {
+                savingsMsg.style.display = 'block';
+                savingsMsg.innerText = `📉 Ahorras ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(savings)} frente al 3% tradicional`;
+            } else {
+                savingsMsg.style.display = 'none';
+            }
+        };
+        
+        updateCommission(IP);
     };
     
     // Listeners para re-analizar dinámicamente
