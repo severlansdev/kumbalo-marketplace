@@ -3118,3 +3118,47 @@ img {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* RUNT V2 - Inputs Grid */
+.runt-inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+    .runt-inputs-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.runt-field label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--gray);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.input-hint {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--primary);
+    margin-top: 4px;
+    opacity: 0.8;
+}
+
+#btnBuyFullReport {
+    transition: all 0.3s ease;
+    border: 1px solid var(--secondary) !important;
+}
+
+#btnBuyFullReport:hover {
+    background: var(--secondary) !important;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+}
