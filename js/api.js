@@ -148,9 +148,18 @@ const api = {
     },
     // Endpoints RUNT
     runt: {
-        check: async (placa) => {
-            return await api.request(`/v1/runt/consulta/${placa}`, {
+        check: async (placa, vin = null) => {
+            let url = `/v1/runt/consulta/${placa}`;
+            if (vin) url += `?vin=${encodeURIComponent(vin)}`;
+            return await api.request(url, {
                 method: 'GET'
+            });
+        },
+        buyReport: async (placa, email) => {
+            return await api.request('/v1/runt/comprar-reporte', {
+                method: 'POST',
+                headers: api.getHeaders(),
+                body: JSON.stringify({ placa, email })
             });
         }
     }

@@ -111,7 +111,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (runtForm) {
         runtForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const placa = document.getElementById('runtPlaca').value.trim();
+            const placa = (document.getElementById('runtPlate') || document.getElementById('runtPlaca')).value.trim();
+            const vinInput = document.getElementById('runtVin');
+            const vin = vinInput ? vinInput.value.trim() : null;
             runtError.textContent = '';
             
             if (placa.length < 5 || placa.length > 6) {
@@ -131,7 +133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Delay teatral de escáner
                 await new Promise(r => setTimeout(r, 1500));
                 
-                const data = await window.api.runt.check(placa);
+                const data = await window.api.runt.check(placa, vin);
                 
                 // Poblar UI con diseño Premium ADN
                 document.getElementById('dna-plate-title').textContent = data.placa;
@@ -170,9 +172,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                     embargosEl.textContent = "LIBRE DE EMBARGOS";
                     embargosEl.style.color = "var(--success)";
                 }
-                
+
+                // Fuente y Verificación
+                const fuenteEl = document.getElementById('dna-fuente');
+                if (fuenteEl) {
+                    fuenteEl.textContent = data.fuente;
+                    fuenteEl.style.color = data.es_verificado ? "#2ecc71" : "var(--gray)";
+                    if (data.es_verificado) {
+                        fuenteEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg> ${data.fuente}`;
+                    }
+                }
+
                 runtLoader.style.display = 'none';
                 runtResults.style.display = 'block';
+
+                // Configurar botón de compra
+                const btnBuy = document.getElementById('btnBuyFullReport');
+                if (btnBuy) {
+                    btnBuy.onclick = async () => {
+                        btnBuy.disabled = true;
+                        btnBuy.textContent = "PROCESANDO...";
+                        try {
+                            const p = await window.api.runt.buyReport(data.placa, "usuario@ejemplo.com");
+                            window.location.href = p.init_point;
+                        } catch (err) {
+                            alert("Error al generar la compra.");
+                            btnBuy.disabled = false;
+                            btnBuy.textContent = "COMPRAR REPORTE DETALLLADO ($40.000)";
+                        }
+                    };
+                }
                 
             } catch (err) {
                 runtModal.style.display = 'none';
