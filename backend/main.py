@@ -7,6 +7,18 @@ app = FastAPI(title="KUMBALO API")
 
 # --- Guarded heavy imports (may fail on serverless) ---
 try:
+    import sentry_sdk
+    import os
+    if os.environ.get("SENTRY_DSN"):
+        sentry_sdk.init(
+            dsn=os.environ.get("SENTRY_DSN"),
+            traces_sample_rate=1.0,
+            profiles_sample_rate=1.0,
+        )
+except Exception:
+    pass
+
+try:
     from prometheus_fastapi_instrumentator import Instrumentator
     Instrumentator().instrument(app).expose(app)
 except Exception:

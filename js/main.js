@@ -394,28 +394,34 @@ const animations = {
 // ============================================
 const mobileMenu = {
     init() {
-        const btn = document.querySelector('.mobile-menu-btn');
-        const menu = document.querySelector('.nav-menu');
-        const auth = document.querySelector('.nav-buttons');
+        const btn = document.querySelector('#menuToggle') || document.querySelector('.mobile-menu-toggle');
+        const menu = document.querySelector('#navMenu') || document.querySelector('.nav-menu');
 
         if (!btn || !menu) return;
 
         btn.addEventListener('click', function() {
             this.classList.toggle('active');
             menu.classList.toggle('active');
-            auth?.classList.toggle('active');
 
             // Animate menu items
             if (menu.classList.contains('active')) {
-                gsap.from('.nav-menu.active li', {
+                gsap.from('#navMenu li', {
                     duration: 0.5,
-                    x: -50,
+                    x: 50,
                     opacity: 0,
                     stagger: 0.1,
                     ease: 'power3.out',
-                    delay: 0.1
+                    delay: 0.2
                 });
             }
+        });
+
+        // Cerrar menú al hacer click en un enlace
+        menu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                btn.classList.remove('active');
+                menu.classList.remove('active');
+            });
         });
     }
 };

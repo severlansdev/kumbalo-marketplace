@@ -18,3 +18,5 @@ python-dotenv>=1.0.0
 google-generativeai>=0.4.0
 pg8000>=1.30.3
 mercadopago>=2.2.0
+sentry-sdk[fastapi]>=1.40.0
+bandit>=1.7.7
