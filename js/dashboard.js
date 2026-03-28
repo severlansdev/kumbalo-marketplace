@@ -78,23 +78,36 @@ document.addEventListener('DOMContentLoaded', async () => {
             card.className = 'listing-card';
             const strPrice = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(moto.precio);
             
+            // Lógica de botones de pago Kumbalo
+            let actionButtons = '';
+            if (!moto.commission_paid) {
+                const commission = new Intl.NumberFormat('es-CO').format(moto.commission_fee || 250000);
+                actionButtons = `<button onclick="iniciarPagoComision(${moto.id})" class="btn btn-primary" style="padding: 10px; font-size: 0.85rem; width: 100%; margin-top: 10px;">💳 Pagar Comisión ($${commission})</button>`;
+            } else {
+                actionButtons = `
+                    <div style="display:flex; gap:10px; margin-top: 10px;">
+                        <button onclick="abrirMantenimiento(${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Bitácora</button>
+                        ${moto.is_hot ? 
+                            '<span class="badge badge-hot" style="align-self:center;">🔥</span>' : 
+                            `<button onclick="openCheckout('boost', ${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Destacar</button>`
+                        }
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
                 <div class="listing-image">
                     <img src="${moto.image_url || 'https://images.unsplash.com/photo-1558981806-ec527fa84c3d?w=500'}" alt="${moto.marca} ${moto.modelo}">
-                    <span class="badge badge-premium">Tu Moto</span>
+                    <span class="badge ${moto.commission_paid ? 'badge-new' : 'badge-premium'}" style="background: ${moto.commission_paid ? 'var(--success)' : 'var(--primary)'}">
+                        ${moto.commission_paid ? 'Publicada' : 'Pendiente Pago'}
+                    </span>
                 </div>
                 <div class="listing-content">
                     <h3 class="listing-title">${moto.marca} ${moto.modelo}</h3>
                     <p class="listing-year">${moto.año} - ${strPrice}</p>
                     <div class="listing-details" style="margin-top:10px; flex-direction:column; gap:10px;">
                         <span class="detail">🚗 ${moto.kilometraje} km</span>
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="abrirMantenimiento(${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Bitácora</button>
-                            ${moto.is_hot ? 
-                                '<span class="badge badge-hot" style="align-self:center;">🔥</span>' : 
-                                `<button onclick="openCheckout('boost', ${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Destacar</button>`
-                            }
-                        </div>
+                        ${actionButtons}
                     </div>
                 </div>
             `;
@@ -111,6 +124,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
+
+// Función para iniciar el flujo de pago con MercadoPago
+window.iniciarPagoComision = async function(motoId) {
+    try {
+        const response = await window.api.payments.createPreference(motoId);
+        if (response.init_point) {
+            // Redirigir al link de pago seguro
+            window.location.href = response.init_point;
+        } else {
+            throw new Error("No se pudo generar el túnel de pago.");
+        }
+    } catch (e) {
+        alert("Error de Fintech: " + e.message);
+    }
+};
 
 // Real-Time Notifications Engine
 function setupWebSocket(userId) {
@@ -308,23 +336,46 @@ document.querySelectorAll('.dashboard-nav a').forEach(link => {
             document.querySelectorAll('.dashboard-nav a').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
 
-            // Section Update
+            // Sections
             const grid = document.getElementById('misMotosGrid');
             const aiSection = document.getElementById('ia-center-section');
+            const transferSection = document.getElementById('traspasos-section');
             const header = document.querySelector('.dashboard-header');
 
+            // Hide all by default
+            [grid, aiSection, transferSection, header].forEach(el => { if(el) el.style.display = 'none'; });
+
             if (target === '#ia-center') {
-                grid.style.display = 'none';
-                header.style.display = 'none';
                 aiSection.style.display = 'block';
+            } else if (target === '#traspasos') {
+                if(transferSection) transferSection.style.display = 'block';
+                loadTraspasos();
             } else {
                 grid.style.display = 'grid';
                 header.style.display = 'block';
-                aiSection.style.display = 'none';
             }
         }
     });
 });
+
+async function loadTraspasos() {
+    const list = document.getElementById('traspasos-list');
+    if (!list) return;
+    
+    list.innerHTML = `
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:20px; border-radius:15px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h4 style="color:#fff; margin-bottom:5px;">Traspaso Express: Yamaha MT-09</h4>
+                <p style="font-size:0.8rem; color:#888;">ID: #TR-8829 | Estado: <b>En Notaría</b></p>
+            </div>
+            <button class="btn btn-primary" style="padding: 8px 15px; font-size: 0.8rem;">Ver Detalles</button>
+        </div>
+        <div style="margin-top:20px; padding:20px; border:2px dashed rgba(255,255,255,0.1); border-radius:15px; text-align:center;">
+            <p style="color:#888; margin-bottom:15px;">¿Acabas de vender una moto? Inicia el proceso legal y obtén tu dinero seguro.</p>
+            <button class="btn btn-outline">Solicitar Nuevo Traspaso</button>
+        </div>
+    `;
+}
 
 document.getElementById('btn-send-command')?.addEventListener('click', async () => {
     const input = document.getElementById('ai-command-input');
@@ -358,3 +409,22 @@ document.getElementById('btn-send-command')?.addEventListener('click', async () 
         btn.textContent = 'Emitir Orden Directa';
     }
 });
+
+// Lógica de perfil de usuario
+window.actualizarPerfil = async function() {
+    const nombre = prompt("Ingresa tu nuevo nombre:", document.getElementById('dashName').textContent);
+    if (!nombre) return;
+
+    try {
+        const response = await window.api.request('/auth/me/profile', {
+            method: 'PUT',
+            headers: window.api.getHeaders(),
+            body: JSON.stringify({ nombre })
+        });
+        
+        alert("¡Perfil actualizado con éxito!");
+        window.location.reload();
+    } catch (e) {
+        alert("Error al actualizar perfil: " + e.message);
+    }
+};

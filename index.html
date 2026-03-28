@@ -368,7 +368,58 @@
                     <p>Consultando base de datos nacional RUNT</p>
                 </div>
                 <div id="runtResults" style="display: none;">
-                    <!-- Populated by JS -->
+                    <div class="dna-header">
+                        <div class="dna-chip">ADN VEHICULAR</div>
+                        <h2 id="dna-plate-title">---</h2>
+                        <p id="dna-subtitle">Reporte de Verificación Kumbalo</p>
+                    </div>
+                    
+                    <div class="dna-grid">
+                        <div class="dna-card info-main">
+                            <h4>Datos del Vehículo</h4>
+                            <div class="dna-stat-row"><span>Marca:</span> <strong id="dna-marca">---</strong></div>
+                            <div class="dna-stat-row"><span>Línea:</span> <strong id="dna-linea">---</strong></div>
+                            <div class="dna-stat-row"><span>Modelo:</span> <strong id="dna-modelo">---</strong></div>
+                            <div class="dna-stat-row"><span>Color:</span> <strong id="dna-color">---</strong></div>
+                        </div>
+                        
+                        <div class="dna-card legal-status">
+                            <h4>Situación Legal</h4>
+                            <div class="status-item">
+                                <span class="label">SOAT</span>
+                                <div id="dna-soat-badge" class="badge">---</div>
+                                <small id="dna-soat-venc">---</small>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">RTM</span>
+                                <div id="dna-rtm-badge" class="badge">---</div>
+                                <small id="dna-rtm-venc">---</small>
+                            </div>
+                        </div>
+
+                        <div class="dna-card alert-status">
+                            <h4>Alertas y Multas</h4>
+                            <div class="alert-item">
+                                <span class="icon">🚥</span>
+                                <div class="alert-info">
+                                    <span id="dna-multas-text">---</span>
+                                    <span class="price" id="dna-multas-valor">---</span>
+                                </div>
+                            </div>
+                            <div class="alert-item">
+                                <span class="icon">🚫</span>
+                                <div class="alert-info">
+                                    <span>Embargos / Limitaciones</span>
+                                    <span id="dna-embargos" class="status-text">---</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dna-footer">
+                        <button class="btn btn-primary btn-block" onclick="document.getElementById('closeRuntModal').click()">Cerrar Diagnóstico</button>
+                        <p class="dna-cert">Verificado por Kumbalo AI Intelligence Agent</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -415,18 +466,17 @@
                     <h3>Historial de Mantenimiento</h3>
                     <p>Registro blockchain de servicios y reparaciones, certificado por talleres aliados de KUMBALO.</p>
                 </div>
-                <div class="service-card">
-                    <div class="service-icon" aria-hidden="true">
+                <div class="service-card" style="border: 1px solid var(--primary); background: rgba(255,40,0,0.02);">
+                    <div class="service-icon" aria-hidden="true" style="color: var(--primary);">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m16 18 4-4-4-4"/>
-                            <path d="M12 14v8"/>
-                            <path d="M2 12h20"/>
-                            <path d="M2 6v2"/>
-                            <path d="M2 18v-2"/>
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <polyline points="16 11 18 13 22 9"/>
                         </svg>
                     </div>
-                    <h3>Intermediación Certificada</h3>
-                    <p>Nuestro equipo Jurídico y Financiero coordina la firma de traspaso en notarías aliadas sin filas.</p>
+                    <h3>Traspaso Express Kumbalo</h3>
+                    <p>Tramitamos el cambio de dueño en tiempo récord. Notaría aliada, biometría digital y gestor ante el SIM/VUM incluido.</p>
+                    <div style="margin-top: 15px; font-weight: bold; color: var(--primary);">$440.000 (Todo Incluido)</div>
                 </div>
             </div>
         </div>

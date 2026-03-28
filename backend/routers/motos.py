@@ -43,34 +43,65 @@ async def create_moto(
     modelo: str = Form(...),
     año: int = Form(...),
     precio: float = Form(...),
-    kilometraje: int = Form(...),
-    descripcion: str = Form(...),
-    foto: UploadFile = File(...),
+    kilometraje: int = Form(0),
+    cilindraje: Optional[int] = Form(None),
+    color: Optional[str] = Form(None),
+    transmision: Optional[str] = Form(None),
+    combustible: Optional[str] = Form(None),
+    ciudad: Optional[str] = Form(None),
+    descripcion: str = Form("Sin descripción"),
+    fotos: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
     current_user: models.Usuario = Depends(get_current_user)
 ):
-    try:
-        # Subir foto directo a AWS S3
-        image_url = upload_image_to_s3(foto.file, foto.filename, foto.content_type)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error subiendo imagen a AWS S3: {str(e)}")
-
+    # 1. Crear la instancia de la moto primero para tener su ID
     nueva_moto = models.Moto(
         marca=sanitize_input(marca),
         modelo=sanitize_input(modelo),
         año=año,
         precio=precio,
         kilometraje=kilometraje,
+        cilindraje=cilindraje,
+        color=sanitize_input(color) if color else None,
+        transmision=sanitize_input(transmision) if transmision else None,
+        combustible=sanitize_input(combustible) if combustible else None,
+        ciudad=sanitize_input(ciudad) if ciudad else None,
         descripcion=sanitize_input(descripcion),
-        image_url=image_url,
         propietario_id=current_user.id,
         commission_fee=calculate_kumbalo_fee(precio),
-        commission_type="fixed"
+        commission_type="fixed",
+        estado="activa"
     )
     
     db.add(nueva_moto)
     db.commit()
     db.refresh(nueva_moto)
+
+    # 2. Procesar y subir todas las fotos
+    urls_subidas = []
+    for i, foto in enumerate(fotos):
+        try:
+            image_url = upload_image_to_s3(foto.file, foto.filename, foto.content_type)
+            urls_subidas.append(image_url)
+            
+            # Crear registro en moto_imagenes
+            nueva_imagen = models.MotoImagen(
+                moto_id=nueva_moto.id,
+                url=image_url,
+                orden=i,
+                es_principal=(i == 0)
+            )
+            db.add(nueva_imagen)
+        except Exception as e:
+            print(f"Error subiendo foto {i}: {e}")
+            continue # Intentar con las siguientes si una falla
+
+    # 3. Actualizar la imagen principal en el modelo Moto (para compatibilidad)
+    if urls_subidas:
+        nueva_moto.image_url = urls_subidas[0]
+        db.commit()
+        db.refresh(nueva_moto)
+
     return nueva_moto
 
 @router.get("/mis-motos", response_model=List[schemas.MotoResponse])

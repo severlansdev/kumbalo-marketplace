@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KUMBALO | Pitch Deck Executive Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f59e0b;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --white: #ffffff;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Page Layout for Print/Display */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 20px auto;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media print {
+            body { background: white; color: black; }
+            .page { margin: 0; border: none; box-shadow: none; width: 100%; }
+            .no-print { display: none; }
+        }
+
+        /* Typography */
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--white); }
+        h1 { font-size: 3.5rem; line-height: 1.1; margin-bottom: 1rem; }
+        h2 { font-size: 2rem; margin-bottom: 1.5rem; color: var(--primary); border-left: 4px solid var(--primary); padding-left: 15px; }
+
+        /* Decorations */
+        .glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            opacity: 0.15;
+            z-index: 0;
+            border-radius: 50%;
+        }
+
+        /* Cover Page */
+        .cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        /* Sections */
+        .section { margin-bottom: 4rem; z-index: 1; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .card h4 { color: var(--primary); margin-bottom: 10px; font-size: 1.1rem; }
+        .card p { font-size: 0.9rem; color: var(--text-muted); }
+
+        /* Charts SVG */
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            margin-top: 20px;
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+            gap: 30px;
+            justify-content: space-around;
+        }
+
+        .bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 60px;
+        }
+
+        .bar {
+            width: 100%;
+            background: linear-gradient(to top, var(--primary), #818cf8);
+            border-radius: 6px 6px 0 0;
+            transition: height 1s ease;
+            position: relative;
+        }
+
+        .bar::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--white);
+            font-weight: bold;
+        }
+
+        .bar-label { font-size: 0.75rem; margin-top: 10px; color: var(--text-muted); }
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .cta-button {
+            background: var(--primary);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: COVER -->
+    <div class="page">
+        <div class="glow" style="top: -50px; right: -50px;"></div>
+        <div class="cover">
+            <span class="badge">Propuesta de Inversión 2026</span>
+            <h1>KUMBALO AI<br><span style="color: var(--primary);">Marketplace</span></h1>
+            <p class="subtitle">La plataforma autónoma que está redefiniendo la confianza y seguridad en la compra/venta de motocicletas en Colombia.</p>
+            
+            <div style="display: flex; gap: 40px; margin-top: 2rem;">
+                <div>
+                    <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted);">Inversión Semilla</div>
+                    <div style="font-size: 1.5rem; font-weight: 800;">$3M COP</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted);">Margen Proyectado</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;">+70%</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted);">Agentes IA Operando</div>
+                    <div style="font-size: 1.5rem; font-weight: 800;">18</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <span>Confidencial | Kumbalo Tech S.A.S.</span>
+            <span>Documento de Negocio</span>
+        </div>
+    </div>
+
+    <!-- PAGE 2: PROBLEM & SOLUTION -->
+    <div class="page">
+        <div class="glow" style="bottom: 0px; left: -100px; background: radial-gradient(circle, var(--secondary) 0%, transparent 70%); opacity: 0.1;"></div>
+        
+        <div class="section">
+            <h2>El Problema del Mercado</h2>
+            <div class="grid">
+                <div class="card">
+                    <h4>Inseguridad Total</h4>
+                    <p>6 de cada 10 ventas informales presentan riesgos de fraude o problemas de documentos en Colombia.</p>
+                </div>
+                <div class="card">
+                    <h4>Burocracia de Tránsito</h4>
+                    <p>Los procesos de traspaso pueden durar semanas, deteniendo el flujo de dinero y la seguridad legal.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>La Revolución Kumbalo</h2>
+            <p style="margin-bottom: 20px;">Utilizamos 18 agentes de IA para automatizar la cadena de valor completa, eliminando el error humano y los costos excesivos.</p>
+            <div class="grid">
+                <div class="card" style="border-left: 4px solid var(--secondary);">
+                    <h4>Veridad RUNT Express</h4>
+                    <p>Historial legal completo del vehículo en segundos mediante integraciones API.</p>
+                </div>
+                <div class="card" style="border-left: 4px solid var(--primary);">
+                    <h4>Escrow Seguro</h4>
+                    <p>Protegemos el dinero del comprador hasta que el traspaso sea validado legalmente.</p>
+                </div>
+                <div class="card">
+                    <h4>IA Valuation</h4>
+                    <p>Algoritmos que analizan el precio justo de mercado para una venta 3x más rápida.</p>
+                </div>
+                <div class="card">
+                    <h4>Fintech Pipeline</h4>
+                    <p>Crédito vehicular y SOAT integrados directo en el checkout.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>Estrategia de Mercado | Kumbalo 2026</span>
+            <span>Página 2</span>
+        </div>
+    </div>
+
+    <!-- PAGE 3: TECH STACK & EFFICIENCY -->
+    <div class="page">
+        <div class="section">
+            <h2>Ingeniería y Eficiencia Operativa</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Nuestra ventaja competitiva no es solo el marketplace, es el **Autonomy Engine** que lo opera.</p>
+            
+            <div class="card" style="margin-bottom: 20px; border-left: 4px solid var(--primary);">
+                <h4>The Tech Stack</h4>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                    <span style="background: #2dd4bf; color: #0f172a; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">FASTAPI</span>
+                    <span style="background: #38bdf8; color: #0f172a; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">PYTHON 3.10</span>
+                    <span style="background: #fbbf24; color: #0f172a; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">POSTGRESQL</span>
+                    <span style="background: #000; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">VERCEL EDGE</span>
+                    <span style="background: #6366f1; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">AI AGENTS</span>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>Costo de Nómina Tech</h4>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--white);">$0 COP</div>
+                    <p>Los 18 agentes de IA realizan el trabajo de un equipo de 5 ingenieros senior.</p>
+                </div>
+                <div class="card">
+                    <h4>Uptime Garantizado</h4>
+                    <div style="font-size: 2rem; font-weight: 800; color: #10b981;">99.9%</div>
+                    <p>Monitoreo proactivo y auto-healing por el Agente SRE.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Mecanismos de Ganancia (Revenue Model)</h2>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 8px; border: 1px solid #10b981;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: #10b981; font-weight: 700;">Éxito por Venta Directa (Tiered)</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                        <span>Premium / Alta Gama: <strong>$500,000 COP</strong></span>
+                        <span>Media: <strong>$250,000</strong></span>
+                        <span>Entrada: <strong>$150,000</strong></span>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                    <span>Ads & Visibilidad Premium (Oro/Diamante)</span>
+                    <span style="font-weight: bold; color: var(--secondary);">$80,000 COP</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                    <span>Fintech Lead (Créditos Vehiculares)</span>
+                    <span style="font-weight: bold; color: var(--secondary);">$300,000 COP</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                    <span>Traspaso Digital & Legalidad</span>
+                    <span style="font-weight: bold; color: var(--secondary);">$150,000 - $250,000</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                    <span>Seguros & SOAT (Comisión Instantánea)</span>
+                    <span style="font-weight: bold; color: var(--secondary);">$60,000 COP</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>Stack Tecnológico & Monetización | Kumbalo 2026</span>
+            <span>Página 3</span>
+        </div>
+    </div>
+
+    <!-- PAGE 4: FINANCIALS & INVESTMENT -->
+    <div class="page">
+        <div class="section">
+            <h2>Proyecciones a 2 Años</h2>
+            <div style="text-align: center; font-weight: 600; font-size: 1.1rem; margin-bottom: 5px;">Facturación Mensual (COP)</div>
+            <div class="chart-container" style="height: 200px; margin-bottom: 20px;">
+                <div class="bar-group">
+                    <div class="bar" style="height: 5%;" data-value="$1.4M"></div>
+                    <div class="bar-label">M1</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar" style="height: 25%;" data-value="$24M"></div>
+                    <div class="bar-label">M6</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar" style="height: 50%;" data-value="$108M"></div>
+                    <div class="bar-label">Año 1</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar" style="height: 100%; background: var(--secondary);" data-value="$350M"></div>
+                    <div class="bar-label">Año 2</div>
+                </div>
+            </div>
+
+            <div class="card" style="text-align: center; border: 1px solid var(--secondary);">
+                <span style="font-size: 0.8rem; color: var(--secondary); text-transform: uppercase; font-weight: 700;">Potencial Acumulado 24 Meses</span>
+                <div style="font-size: 2.5rem; font-weight: 900; color: var(--white);">$3.7 BILLONES COP</div>
+                <p style="color: var(--text-muted); font-size: 0.8rem;">Basado en 180,000 usuarios activos mensuales y dominancia del mercado premium.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Asignación de Capital ($3M COP Iniciales)</h2>
+            <div style="display: flex; align-items: center; gap: 40px; margin-top: 10px;">
+                <!-- SVG Pie Chart -->
+                <svg width="150" height="150" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+                    <circle cx="18" cy="18" r="16" fill="transparent" stroke="rgba(255,255,255,0.1)" stroke-width="3"></circle>
+                    <circle cx="18" cy="18" r="16" fill="transparent" stroke="#6366f1" stroke-width="3" stroke-dasharray="66 100" stroke-dashoffset="0"></circle>
+                    <circle cx="18" cy="18" r="16" fill="transparent" stroke="#f59e0b" stroke-width="3" stroke-dasharray="25 100" stroke-dashoffset="-66"></circle>
+                    <circle cx="18" cy="18" r="16" fill="transparent" stroke="#10b981" stroke-width="3" stroke-dasharray="9 100" stroke-dashoffset="-91"></circle>
+                </svg>
+                
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.8rem;">
+                        <div style="width: 10px; height: 10px; background: #6366f1; border-radius: 2px;"></div>
+                        <span><strong>MKT:</strong> Adquisición</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.8rem;">
+                        <div style="width: 10px; height: 10px; background: #f59e0b; border-radius: 2px;"></div>
+                        <span><strong>LEGAL:</strong> RUNT / Traspasos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>ROI & Proyección 24 Meses | Kumbalo 2026</span>
+            <span>Página 4</span>
+        </div>
+    </div>
+
+    <!-- PAGE 4: THE VISION -->
+    <div class="page">
+        <div class="section" style="text-align: center; margin-top: 3rem;">
+            <h2>¿Por qué Kumbalo Ahora?</h2>
+            <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto 30px auto;">Estamos en el mercado de motocicletas con mayor crecimiento en LatAm. Nuestra tecnología no solo vende motos, vende tranquilidad.</p>
+            
+            <div class="card" style="display: inline-block; padding: 40px; border: 2px solid var(--primary);">
+                <h2 style="border: none; padding: 0; margin-bottom: 10px;">La Meta</h2>
+                <p style="font-size: 1.5rem; font-weight: 700;">$600M COP Facturación Año 1</p>
+                <p style="color: var(--text-muted);">Dominando el nicho Premium y expandiendo a servicios masivos.</p>
+            </div>
+        </div>
+
+        <div class="section" style="text-align: center; margin-top: 4rem;">
+            <p style="font-size: 1.1rem; margin-bottom: 20px;">Este no es un proyecto, es un ecosistema escalable.</p>
+            <a href="#" class="cta-button no-print" onclick="window.print()">DESCARGAR REPORTE EN PDF</a>
+            <p class="no-print" style="margin-top: 15px; font-size: 0.8rem; color: var(--text-muted);">Presiona CTRL + P para ver la previsualización de impresión.</p>
+        </div>
+
+        <div class="footer">
+            <span>© 2026 Kumbalo Marketplace | All Rights Reserved.</span>
+            <span>Final del Reporte</span>
+        </div>
+    </div>
+
+</body>
+</html>

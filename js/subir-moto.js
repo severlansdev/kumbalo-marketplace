@@ -12,60 +12,76 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropzone = document.getElementById('photoDropzone');
     const previewContainer = document.getElementById('photoPreviewContainer');
 
+    let selectedFiles = [];
+
+    const updatePreviews = () => {
+        if (!previewContainer) return;
+        previewContainer.innerHTML = '';
+        
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = `photo-preview-item ${index === 0 ? 'main-photo' : ''}`;
+                
+                previewItem.innerHTML = `
+                    <img src="${event.target.result}" alt="Preview ${index + 1}">
+                    ${index === 0 ? '<span class="main-badge">Principal</span>' : ''}
+                    <div class="photo-order">${index + 1}</div>
+                    <div class="photo-actions">
+                        <button type="button" class="btn-remove-photo" data-index="${index}" title="Eliminar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                `;
+                previewContainer.appendChild(previewItem);
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const handleFiles = (files) => {
+        const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+        if (selectedFiles.length + validFiles.length > 10) {
+            alert('Máximo 10 fotos permitidas.');
+            selectedFiles = [...selectedFiles, ...validFiles].slice(0, 10);
+        } else {
+            selectedFiles = [...selectedFiles, ...validFiles];
+        }
+        updatePreviews();
+    };
+
     if(dropzone && fileInput) {
         dropzone.addEventListener('click', () => fileInput.click());
         
-        // --- NUEVA LÓGICA: Manejo de selección y previsualización ---
-        fileInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            
-            // Limpiar contenedor
-            if (previewContainer) previewContainer.innerHTML = '';
-            
-            if (files.length === 0) return;
-
-            // Limitar a 10 fotos como dice la UI
-            const filesToPreview = files.slice(0, 10);
-            
-            filesToPreview.forEach((file, index) => {
-                if (!file.type.startsWith('image/')) return;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = `photo-preview-item ${index === 0 ? 'main-photo' : ''}`;
-                    
-                    previewItem.innerHTML = `
-                        <img src="${event.target.result}" alt="Preview ${index + 1}">
-                        ${index === 0 ? '<span class="main-badge">Principal</span>' : ''}
-                        <div class="photo-order">${index + 1}</div>
-                        <div class="photo-actions">
-                            <button type="button" class="btn-remove-photo" data-index="${index}" title="Eliminar">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
-                        </div>
-                    `;
-                    
-                    if (previewContainer) previewContainer.appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
-            });
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
         });
 
-        // Delegación de eventos para eliminar fotos (opcional pero recomendado)
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+            // Reset input so the same file can be selected again if removed
+            fileInput.value = '';
+        });
+
+        // Delegación de eventos para eliminar fotos
         previewContainer?.addEventListener('click', (e) => {
             const btn = e.target.closest('.btn-remove-photo');
             if (btn) {
                 const index = parseInt(btn.dataset.index);
-                const dt = new DataTransfer();
-                const { files } = fileInput;
-                
-                for (let i = 0; i < files.length; i++) {
-                    if (index !== i) dt.items.add(files[i]);
-                }
-                
-                fileInput.files = dt.files; // Update the input
-                fileInput.dispatchEvent(new Event('change')); // Trigger re-render
+                selectedFiles.splice(index, 1);
+                updatePreviews();
             }
         });
     }
@@ -75,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        if (!fileInput || fileInput.files.length === 0) {
+        if (selectedFiles.length === 0) {
             alert('Por favor sube al menos una foto de la motocicleta.');
             return;
         }
@@ -83,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const btn = form.querySelector('button[type="submit"]');
             if (btn) {
-                btn.innerHTML = 'Subiendo a AWS S3...';
+                btn.innerHTML = 'Subiendo información...';
                 btn.disabled = true;
             }
 
@@ -94,10 +110,17 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('año', document.getElementById('year').value);
             formData.append('precio', document.getElementById('price').value);
             formData.append('kilometraje', document.getElementById('mileage').value || 0);
+            formData.append('cilindraje', document.getElementById('engine').value || 0);
+            formData.append('color', document.getElementById('color').value || '');
+            formData.append('transmision', document.getElementById('transmission').value || '');
+            formData.append('combustible', document.getElementById('fuel').value || '');
+            formData.append('ciudad', document.getElementById('city').value || '');
             formData.append('descripcion', document.getElementById('description').value || 'Sin descripción');
             
-            // Adjuntar la primera foto subida
-            formData.append('foto', fileInput.files[0]);
+            // Adjuntar todas las fotos seleccionadas
+            selectedFiles.forEach(file => {
+                formData.append('fotos', file);
+            });
 
             // Enviar petición POST
             await window.api.motos.create(formData);

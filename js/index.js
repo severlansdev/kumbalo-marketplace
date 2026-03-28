@@ -133,22 +133,43 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 const data = await window.api.runt.check(placa);
                 
-                // Poblar UI
-                runtResults.innerHTML = `
-                    <h2 style="font-family: var(--font-family-display); font-size: 2rem; margin-bottom: 15px; color: var(--secondary); text-align: center;">Reporte KUMBALO</h2>
-                    <div style="background: var(--gray-light); padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: center;">
-                        <h3 style="font-size: 1.5rem; letter-spacing: 2px; color: var(--charcoal); font-weight: bold;">${data.placa}</h3>
-                        <p style="color: var(--gray);">${data.marca} ${data.linea} - Mod: ${data.modelo}</p>
-                    </div>
-                    <div class="runt-result-item"><span>SOAT:</span> <span class="status-badge ${data.estado_soat === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}">${data.estado_soat}</span></div>
-                    <div class="runt-result-item"><span>Vence SOAT:</span> <span style="font-weight: bold;">${data.vencimiento_soat}</span></div>
-                    <div class="runt-result-item"><span>Tecnomecánica:</span> <span class="status-badge ${data.estado_rtm === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}">${data.estado_rtm}</span></div>
-                    <div class="runt-result-item"><span>Multas (SIMIT):</span> <span style="font-weight: bold; color: ${data.multas === 0 ? 'var(--success)' : 'var(--error)'};">${data.multas === 0 ? '✅ Sin multas' : '⚠️ ' + data.multas + ' infracciones'}</span></div>
-                    <div class="runt-result-item"><span>Embargos:</span> <span>${data.embargos ? '<span class="status-badge status-vencido">SI - NO COMPRAR</span>' : '<span class="status-badge status-vigente">LIBRE</span>'}</span></div>
-                    
-                    <button class="btn btn-primary btn-block" style="margin-top: 20px;" onclick="document.getElementById('closeRuntModal').click()">Entendido</button>
-                    ${!data.embargos ? '<p style="text-align:center; margin-top:10px; font-size: 0.9rem;">Moto limpia y lista para rodar. <a href="subir-moto.html" style="color:var(--primary); font-weight:bold;">¡Véndela aquí!</a></p>' : ''}
-                `;
+                // Poblar UI con diseño Premium ADN
+                document.getElementById('dna-plate-title').textContent = data.placa;
+                document.getElementById('dna-marca').textContent = data.marca;
+                document.getElementById('dna-linea').textContent = data.linea;
+                document.getElementById('dna-modelo').textContent = data.modelo;
+                document.getElementById('dna-color').textContent = data.color;
+                
+                const soatBadge = document.getElementById('dna-soat-badge');
+                soatBadge.textContent = data.estado_soat;
+                soatBadge.className = `badge ${data.estado_soat === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}`;
+                document.getElementById('dna-soat-venc').textContent = `Vence: ${data.vencimiento_soat}`;
+                
+                const rtmBadge = document.getElementById('dna-rtm-badge');
+                rtmBadge.textContent = data.estado_rtm;
+                rtmBadge.className = `badge ${data.estado_rtm === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}`;
+                document.getElementById('dna-rtm-venc').textContent = `Vence: ${data.vencimiento_rtm}`;
+                
+                const multasText = document.getElementById('dna-multas-text');
+                const multasValor = document.getElementById('dna-multas-valor');
+                if (data.multas === 0) {
+                    multasText.textContent = "Sin multas pendientes";
+                    multasText.style.color = "var(--success)";
+                    multasValor.textContent = "$0";
+                } else {
+                    multasText.textContent = `${data.multas} Infracciones`;
+                    multasText.style.color = "var(--error)";
+                    multasValor.textContent = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(data.valor_multas);
+                }
+                
+                const embargosEl = document.getElementById('dna-embargos');
+                if (data.embargos) {
+                    embargosEl.textContent = "ALERTA: " + data.limitaciones_propiedad;
+                    embargosEl.style.color = "var(--error)";
+                } else {
+                    embargosEl.textContent = "LIBRE DE EMBARGOS";
+                    embargosEl.style.color = "var(--success)";
+                }
                 
                 runtLoader.style.display = 'none';
                 runtResults.style.display = 'block';

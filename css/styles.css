@@ -2972,3 +2972,149 @@ img {
 .nav-links a:hover {
     color: var(--primary) !important;
 }
+
+/* ========================================
+   VEHICLE DNA MODAL - PREMIUM UI
+   ======================================== */
+.runt-modal-content {
+    background: #0f0f0f !important;
+    border: 1px solid rgba(255, 40, 0, 0.2);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 40, 0, 0.1);
+    border-radius: 24px;
+    padding: 2.5rem;
+    max-width: 600px;
+    width: 95%;
+    position: relative;
+    overflow: hidden;
+}
+
+.dna-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.dna-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(255, 40, 0, 0.1);
+    color: var(--primary);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255, 40, 0, 0.3);
+}
+
+.dna-header h2 {
+    font-size: 2.5rem;
+    letter-spacing: 4px;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #fff, #888);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.dna-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.dna-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.25rem;
+}
+
+.dna-card h4 {
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 0.5rem;
+}
+
+.info-main { grid-column: 1 / -1; }
+
+.dna-stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.dna-stat-row span { color: var(--gray); }
+
+.status-item {
+    margin-bottom: 1rem;
+}
+
+.status-item .label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-bottom: 4px;
+}
+
+.status-item .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.status-item small {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--gray);
+}
+
+.alert-status { grid-column: 1 / -1; }
+
+.alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.alert-item .icon { font-size: 1.5rem; }
+
+.alert-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.alert-info span { font-size: 0.9rem; font-weight: 600; }
+.alert-info .price { color: var(--primary); font-family: var(--font-family-display); font-size: 1.1rem; }
+
+.dna-footer {
+    text-align: center;
+}
+
+.dna-cert {
+    font-size: 0.7rem;
+    color: var(--gray);
+    margin-top: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.status-vigente { background: rgba(40, 167, 69, 0.2) !important; color: #2ecc71 !important; border: 1px solid rgba(46, 204, 113, 0.3); }
+.status-vencido { background: rgba(220, 53, 69, 0.2) !important; color: #e74c3c !important; border: 1px solid rgba(231, 76, 60, 0.3); }
+
+/* Scanner Animation */
+.spin-anim {
+    animation: spin 2s linear infinite;
+    color: var(--primary);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

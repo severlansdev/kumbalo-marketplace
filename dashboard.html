@@ -140,6 +140,16 @@
                             Centro de Mando IA
                         </a>
                     </li>
+                    <li>
+                        <a href="#traspasos">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <polyline points="16 11 18 13 22 9"/>
+                            </svg>
+                            Traspasos
+                        </a>
+                    </li>
 
                     <li class="nav-section">Configuración</li>
                     <li style="margin: 10px 0;">
@@ -297,6 +307,18 @@
 
                 <!-- Agent Status Roster -->
                 <div id="agent-roster" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 20px;">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Traspasos Section -->
+            <section id="traspasos-section" style="display: none; margin-top: 30px;">
+                <div class="dashboard-header-top">
+                    <h2 class="dashboard-title">📋 Gestión de Traspasos Kumbalo</h2>
+                </div>
+                <p class="dashboard-subtitle" style="margin-bottom: 25px;">Sigue el estado legal de la compra o venta de tus motocicletas en tiempo real.</p>
+                
+                <div id="traspasos-list" style="display: flex; flex-direction: column; gap: 15px;">
                     <!-- Se llenará dinámicamente -->
                 </div>
             </section>

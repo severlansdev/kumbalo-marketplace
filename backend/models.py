@@ -65,6 +65,7 @@ class Moto(Base):
     # Tarifas de Comisión Kumbalo
     commission_fee = Column(Float, default=0.0)
     commission_type = Column(String(20), default="fixed") # fixed, percentage
+    commission_paid = Column(Boolean, default=False)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -175,3 +176,23 @@ class TelegramHistory(Base):
     role = Column(String(20)) # "user" o "model"
     content = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Tramite(Base):
+    __tablename__ = "tramites"
+
+    id = Column(Integer, primary_key=True, index=True)
+    moto_id = Column(Integer, ForeignKey("motos.id"), index=True)
+    comprador_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
+    vendedor_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
+    tipo = Column(String(50), default="traspaso_express")
+    estado = Column(String(50), default="solicitado") # solicitado, en_notaria, en_transito, finalizado
+    costo_total = Column(Float, default=440000.0)
+    pago_id = Column(String(200), nullable=True) # Referencia de MercadoPago
+    notas = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    moto = relationship("Moto")
+    comprador = relationship("Usuario", foreign_keys=[comprador_id])
+    vendedor = relationship("Usuario", foreign_keys=[vendedor_id])

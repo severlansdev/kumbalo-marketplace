@@ -137,10 +137,19 @@ const api = {
         }
     },
 
+    // Endpoints Pagos (MercadoPago)
+    payments: {
+        createPreference: async (motoId) => {
+            return await api.request(`/payments/create-preference/${motoId}`, {
+                method: 'POST',
+                headers: api.getHeaders()
+            });
+        }
+    },
     // Endpoints RUNT
     runt: {
         check: async (placa) => {
-            return await api.request(`/api/v1/runt/consulta/${placa}`, {
+            return await api.request(`/v1/runt/consulta/${placa}`, {
                 method: 'GET'
             });
         }

@@ -145,6 +145,12 @@ except Exception as e:
     print(f"[ERROR] Could not load agents router: {e}")
 
 try:
+    from .routers import tramites
+    app.include_router(tramites.router, prefix="/api/v1")
+except Exception as e:
+    print(f"[ERROR] Could not load tramites router: {e}")
+
+try:
     from .routers import runt
     app.include_router(runt.router, prefix="/api/v1/runt", tags=["RUNT Lead Magnet"])
 except Exception as e:
