@@ -11,3 +11,5 @@ passlib>=1.7.4
 bcrypt==3.2.0
 python-dotenv>=1.0.0
 slowapi>=0.1.9
+mercadopago>=2.2.0
+
