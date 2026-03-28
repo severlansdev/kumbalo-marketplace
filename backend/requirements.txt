@@ -17,3 +17,4 @@ boto3>=1.28.84
 python-dotenv>=1.0.0
 google-generativeai>=0.4.0
 pg8000>=1.30.3
+mercadopago>=2.2.0
