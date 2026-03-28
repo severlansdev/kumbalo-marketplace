@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from .. import schemas, models
 from ..database import get_db
 from .auth import get_current_user, get_current_admin

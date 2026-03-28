@@ -18,19 +18,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Importar y registrar los routers críticos manualmente
-# Esto evita problemas con imports complejos en backend/main.py durante el escaneo de Vercel
+# Importar y registrar los routers de forma aislada
+# Si un módulo falla (ej. por una importación faltante), los demás siguen funcionando.
 try:
-    from backend.routers import auth, motos, runt, payments
+    from backend.routers import runt
+    app.include_router(runt.router, prefix="/api/v1/runt", tags=["RUNT Lead Magnet"])
+except Exception as e:
+    app.state.runt_error = str(e)
+
+try:
+    from backend.routers import auth, motos, payments
     app.include_router(auth.router, prefix="/api")
     app.include_router(motos.router, prefix="/api")
     app.include_router(payments.router, prefix="/api")
-    app.include_router(runt.router, prefix="/api/v1/runt", tags=["RUNT Lead Magnet"])
 except Exception as e:
-    # Si falla la carga de algún router, al menos la app arranca para mostrar el error
-    @app.get("/api/v1/error")
-    def router_error():
-        return {"status": "error", "detail": str(e)}
+    app.state.core_error = str(e)
+
+@app.get("/api/v1/error")
+def router_error():
+    return {
+        "status": "error", 
+        "runt_module": getattr(app.state, 'runt_error', 'OK'),
+        "core_modules": getattr(app.state, 'core_error', 'OK')
+    }
 
 @app.get("/api/v1/health")
 def health():
