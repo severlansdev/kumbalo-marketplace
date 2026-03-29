@@ -19,7 +19,12 @@ app.add_middleware(
 )
 
 # Importar y registrar los routers de forma aislada
-# Si un módulo falla (ej. por una importación faltante), los demás siguen funcionando.
+try:
+    from backend.limiter import limiter
+    app.state.limiter = limiter
+except Exception:
+    pass
+
 try:
     from backend.routers import runt
     app.include_router(runt.router, prefix="/api/v1/runt", tags=["RUNT Lead Magnet"])
