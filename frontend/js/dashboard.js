@@ -300,7 +300,7 @@ async function loadAgentRoster() {
     if (!roster) return;
 
     try {
-        const agents = await window.api.request('/agents/status', {
+        const agents = await window.api.request('/v1/agents/status', {
             method: 'GET',
             headers: window.api.getHeaders()
         });
@@ -530,7 +530,7 @@ document.getElementById('btn-send-command')?.addEventListener('click', async () 
     btn.textContent = 'Trasmitiendo...';
 
     try {
-        await window.api.request(`/agents/command?command=${encodeURIComponent(command)}`, {
+        await window.api.request(`/v1/agents/command?command=${encodeURIComponent(command)}`, {
             method: 'POST',
             headers: window.api.getHeaders()
         });
