@@ -4,10 +4,16 @@
     { "src": "api/index.py", "use": "@vercel/python" },
     { "src": "frontend/**", "use": "@vercel/static" }
   ],
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/(css|js|assets|images|ico|svg)/(.*)", "destination": "/frontend/$1/$2" },
-    { "source": "/(.*\\.(html|svg|png|jpg|jpeg|webp))$", "destination": "/frontend/$1" },
+    { "source": "/css/(.*)", "destination": "/frontend/css/$1" },
+    { "source": "/js/(.*)", "destination": "/frontend/js/$1" },
+    { "source": "/assets/(.*)", "destination": "/frontend/assets/$1" },
+    { "source": "/images/(.*)", "destination": "/frontend/images/$1" },
+    { "source": "/(login|registro|dashboard|subir-moto|catalogo|vender-moto)", "destination": "/frontend/$1.html" },
+    { "source": "/(.*).html", "destination": "/frontend/$1.html" },
     { "source": "/(.*)", "destination": "/frontend/index.html" }
   ]
 }
