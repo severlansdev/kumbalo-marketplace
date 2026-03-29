@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+"""
+Router de Motos - Catálogo, creación y gestión de publicaciones.
+Gestiona la lógica de subida de imágenes a S3 y el cálculo de comisiones.
+"""
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from .. import schemas, models
@@ -14,11 +18,21 @@ router = APIRouter(prefix="/motos", tags=["motos"])
 def get_motos(
     skip: int = 0, 
     limit: int = 100, 
-    marca: str = None, 
-    anio: int = None, 
-    precio_max: float = None, 
+    marca: Optional[str] = None, 
+    anio: Optional[int] = None, 
+    precio_max: Optional[float] = None, 
     db: Session = Depends(get_db)
-):
+) -> List[models.Moto]:
+    """
+    Obtiene el catálogo público de motos con filtros opcionales.
+    
+    Args:
+        skip: Número de registros a saltar.
+        limit: Límite de registros a retornar.
+        marca: Filtro por marca (parcial/ilike).
+        anio: Filtro por año exacto.
+        precio_max: Filtro por precio máximo.
+    """
     query = db.query(models.Moto)
     if marca:
         query = query.filter(models.Moto.marca.ilike(f"%{sanitize_input(marca)}%"))

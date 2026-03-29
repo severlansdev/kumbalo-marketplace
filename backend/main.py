@@ -1,9 +1,20 @@
+"""
+KUMBALO API - Servidor Principal de la Plataforma de Marketplace de Motos.
+Este módulo inicializa FastAPI, configura middleware (CORS, Sentry, Prometheus),
+gestiona la sincronización automática de la base de datos y registra los routers.
+"""
 import time
 import sys
+import os
+from typing import Optional, Tuple
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="KUMBALO API")
+app = FastAPI(
+    title="KUMBALO API",
+    description="Motor autónomo para el marketplace de motos premium con integración de agentes IA y servicios de trámite.",
+    version="1.1.0"
+)
 
 # --- Guarded heavy imports (may fail on serverless) ---
 try:
@@ -37,19 +48,64 @@ except Exception:
 from .database import engine
 from . import models
 
-@app.on_event("startup")
-def on_startup():
-    from .database import SessionLocal
-    from . import models
+def sync_db_schema(engine, models, SessionLocal, pwd_context) -> Tuple[bool, Optional[str]]:
+    """
+    Sincroniza el esquema de la base de datos y aplica parches manuales necesarios.
+    
+    Este método asegura que las tablas y columnas necesarias para el servicio de 
+    Traspaso Express existan sin necesidad de migraciones complejas de Alembic en 
+    entornos serverless (Vercel). También inicializa el usuario administrador 
+    por defecto si no existe.
+    
+    Returns:
+        Tuple[bool, Optional[str]]: (Success status, Error message if any)
+    """
+    error_msg = None
     try:
-        from passlib.context import CryptContext
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    except ImportError:
-        print("⚠️ [WARN] Passlib/Bcrypt not found. Admin setup skipped.")
-        return
-
-    try:
+        from sqlalchemy import text
         models.Base.metadata.create_all(bind=engine)
+        
+        # Parche de esquema manual para evitar Error 500
+        with engine.connect() as conn:
+            # Asegurar columnas en tabla 'tramites'
+            tramites_cols = [
+                ("radicado_sim", "VARCHAR(100)"),
+                ("documentos_json", "TEXT"),
+                ("notas", "TEXT")
+            ]
+            for col_name, col_type in tramites_cols:
+                try:
+                    conn.execute(text(f"ALTER TABLE tramites ADD COLUMN {col_name} {col_type}"))
+                    conn.commit()
+                except Exception as e:
+                    pass
+            
+            # Asegurar columnas en tabla 'motos'
+            motos_cols = [
+                ("commission_fee", "FLOAT DEFAULT 0.0"),
+                ("commission_type", "VARCHAR(20) DEFAULT 'fixed'"),
+                ("commission_paid", "BOOLEAN DEFAULT FALSE")
+            ]
+            for col_name, col_type in motos_cols:
+                try:
+                    conn.execute(text(f"ALTER TABLE motos ADD COLUMN {col_name} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+
+            # Asegurar columnas en tabla 'usuarios'
+            usuarios_cols = [
+                ("telefono", "VARCHAR(20)"),
+                ("rol", "VARCHAR(20) DEFAULT 'usuario'"),
+                ("tipo_cuenta", "VARCHAR(20) DEFAULT 'natural'")
+            ]
+            for col_name, col_type in usuarios_cols:
+                try:
+                    conn.execute(text(f"ALTER TABLE usuarios ADD COLUMN {col_name} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+        
         db = SessionLocal()
         email = "brayanpd23@gmail.com"
         user = db.query(models.Usuario).filter(models.Usuario.email == email).first()
@@ -65,14 +121,27 @@ def on_startup():
             )
             db.add(new_admin)
             db.commit()
-            print(f"✅ [SETUP] Created Admin: {email}")
         elif user.rol != "admin":
             user.rol = "admin"
             db.commit()
-            print(f"🛡️ [SETUP] Promoted: {email}")
         db.close()
+        return True, None
     except Exception as e:
-        print(f"❌ [STARTUP_ERROR] {e}")
+        error_msg = str(e)
+        print(f"❌ [SYNC_ERROR] {error_msg}")
+        return False, error_msg
+
+@app.on_event("startup")
+def on_startup():
+    from .database import SessionLocal, engine
+    from . import models
+    try:
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        sync_db_schema(engine, models, SessionLocal, pwd_context)
+    except ImportError:
+        print("⚠️ [WARN] Passlib/Bcrypt not found. Admin setup skipped.")
+        return
 
 # --- CORS ---
 app.add_middleware(
@@ -98,6 +167,12 @@ except Exception:
     pass
 
 # --- Root endpoints ---
+try:
+    from .routers import debug
+    app.include_router(debug.router, prefix="/api")
+except Exception as e:
+    print(f"[ERROR] Could not load debug router: {e}")
+
 @app.get("/")
 def read_root():
     return {"message": "🚀 Bienvenido al API del Marketplace de Motos (Fullstack Edition)"}
@@ -105,11 +180,13 @@ def read_root():
 @app.get("/api/health")
 @app.get("/health")
 async def health_check():
-    import os
+    """
+    Endpoint de salud para monitoreo y verificación de estado en Vercel/Docker.
+    """
     return {
         "status": "healthy",
         "service": "kumbalo-api",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "environment": "production" if os.environ.get("VERCEL") else "local"
     }
 

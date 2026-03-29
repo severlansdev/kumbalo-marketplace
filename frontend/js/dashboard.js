@@ -1,4 +1,12 @@
+/**
+ * Dashboard Logic - Kumbalo Marketplace
+ * 
+ * Gestiona la carga de estadísticas, inventario personal del usuario (Garaje Virtual),
+ * notificaciones en tiempo real vía WebSockets y el flujo de trámites de Traspaso Express.
+ * Utiliza GSAP para animaciones premium y la API central para la persistencia.
+ */
 document.addEventListener('DOMContentLoaded', async () => {
+    // Verificación de sesión mandatoria
     if (!window.api || !window.api.isAuthenticated()) {
         window.location.href = 'login.html';
         return;
@@ -78,18 +86,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             card.className = 'listing-card';
             const strPrice = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(moto.precio);
             
-            // Lógica de botones de pago Kumbalo
+            // Lógica de botones de pago Kumbalo y Traspaso
             let actionButtons = '';
+            
+            // Verificación regional para traspaso
+            const ciudadesSoportadas = ["bogota", "bogotá", "medellin", "medellín"];
+            const esCiudadSoportada = ciudadesSoportadas.includes((moto.ciudad || "").toLowerCase().trim());
+            
             if (!moto.commission_paid) {
                 const commission = new Intl.NumberFormat('es-CO').format(moto.commission_fee || 250000);
                 actionButtons = `<button onclick="iniciarPagoComision(${moto.id})" class="btn btn-primary" style="padding: 10px; font-size: 0.85rem; width: 100%; margin-top: 10px;">💳 Pagar Comisión ($${commission})</button>`;
             } else {
                 actionButtons = `
-                    <div style="display:flex; gap:10px; margin-top: 10px;">
-                        <button onclick="abrirMantenimiento(${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Bitácora</button>
-                        ${moto.is_hot ? 
-                            '<span class="badge badge-hot" style="align-self:center;">🔥</span>' : 
-                            `<button onclick="openCheckout('boost', ${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Destacar</button>`
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top: 10px;">
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="abrirMantenimiento(${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Bitácora</button>
+                            ${moto.is_hot ? 
+                                '<span class="badge badge-hot" style="align-self:center;">🔥</span>' : 
+                                `<button onclick="openCheckout('boost', ${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Destacar</button>`
+                            }
+                        </div>
+                        ${esCiudadSoportada ? 
+                            `<button onclick="iniciarNuevoTramite(${moto.id})" class="btn btn-success" style="padding: 8px; font-size: 0.8rem; width: 100%; background:#10b981; border:none;">📋 Solicitar Traspaso</button>` :
+                            `<button class="btn btn-outline" style="padding: 8px; font-size: 0.8rem; width: 100%; opacity:0.5; cursor:not-allowed;" title="Traspaso no disponible en ${moto.ciudad}">📋 Traspaso No Disp.</button>`
                         }
                     </div>
                 `;
@@ -362,19 +381,137 @@ async function loadTraspasos() {
     const list = document.getElementById('traspasos-list');
     if (!list) return;
     
-    list.innerHTML = `
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:20px; border-radius:15px; display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <h4 style="color:#fff; margin-bottom:5px;">Traspaso Express: Yamaha MT-09</h4>
-                <p style="font-size:0.8rem; color:#888;">ID: #TR-8829 | Estado: <b>En Notaría</b></p>
-            </div>
-            <button class="btn btn-primary" style="padding: 8px 15px; font-size: 0.8rem;">Ver Detalles</button>
-        </div>
-        <div style="margin-top:20px; padding:20px; border:2px dashed rgba(255,255,255,0.1); border-radius:15px; text-align:center;">
-            <p style="color:#888; margin-bottom:15px;">¿Acabas de vender una moto? Inicia el proceso legal y obtén tu dinero seguro.</p>
-            <button class="btn btn-outline">Solicitar Nuevo Traspaso</button>
-        </div>
-    `;
+    list.innerHTML = '<p style="color:#888;">Cargando trámites...</p>';
+
+    try {
+        const tramites = await window.api.request('/tramites/mis-tramites', {
+            method: 'GET',
+            headers: window.api.getHeaders()
+        });
+
+        if (tramites.length === 0) {
+            list.innerHTML = `
+                <div style="padding:20px; border:2px dashed rgba(255,255,255,0.1); border-radius:15px; text-align:center;">
+                    <p style="color:#888; margin-bottom:15px;">¿Acabas de vender una moto? Inicia el proceso legal y obtén tu dinero seguro.</p>
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = '';
+        tramites.forEach(t => {
+            const item = document.createElement('div');
+            item.style.cssText = "background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:20px; border-radius:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;";
+            
+            let statusColor = '#f59e0b'; // warning
+            if (t.estado === 'finalizado') statusColor = '#10b981'; // success
+            if (t.estado === 'documentos_pendientes') statusColor = '#3b82f6'; // info
+
+            const formattedPrice = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(t.costo_total);
+
+            item.innerHTML = `
+                <div>
+                    <h4 style="color:#fff; margin-bottom:5px;">Traspaso Express: ID #${t.id}</h4>
+                    <p style="font-size:0.8rem; color:#888;">Estado: <b style="color:${statusColor}">${t.estado.replace('_', ' ').toUpperCase()}</b></p>
+                    ${t.radicado_sim ? `<p style="font-size:0.75rem; color:var(--primary);">Radicado SIM: ${t.radicado_sim}</p>` : ''}
+                </div>
+                <div style="display:flex; gap:10px;">
+                    ${t.estado === 'pago_pendiente' ? 
+                        `<button onclick="pagarTramite(${t.id})" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.8rem;">Pagar $440k</button>` :
+                        `<button class="btn btn-outline" style="padding: 8px 15px; font-size: 0.8rem;">Ver Detalles</button>`
+                    }
+                </div>
+            `;
+            list.appendChild(item);
+        });
+    } catch (e) {
+        list.innerHTML = `<p style="color:red;">Error al cargar trámites: ${e.message}</p>`;
+    }
+}
+
+window.iniciarNuevoTramite = function(motoId) {
+    document.getElementById('checkMotoId').value = motoId;
+    const modal = document.getElementById('traspasoChecklistModal');
+    
+    // Reset checks
+    document.querySelectorAll('.traspaso-check').forEach(c => c.checked = false);
+    const payBtn = document.getElementById('btnTraspasoPay');
+    payBtn.disabled = true;
+    payBtn.style.opacity = '0.4';
+    payBtn.style.filter = 'grayscale(1)';
+    payBtn.style.pointerEvents = 'none';
+
+    modal.style.display = 'flex';
+    gsap.fromTo(modal.querySelector('.modal-content'), 
+        { y: -50, opacity: 0, scale: 0.9 }, 
+        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.7)' }
+    );
+};
+
+// Listener para habilitar botón de pago según checklist
+document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('traspaso-check')) {
+        const allChecked = Array.from(document.querySelectorAll('.traspaso-check')).every(c => c.checked);
+        const payBtn = document.getElementById('btnTraspasoPay');
+        
+        if (allChecked) {
+            payBtn.disabled = false;
+            payBtn.style.opacity = '1';
+            payBtn.style.filter = 'none';
+            payBtn.style.pointerEvents = 'all';
+            gsap.to(payBtn, { scale: 1.05, duration: 0.2, yoyo: true, repeat: 1 });
+        } else {
+            payBtn.disabled = true;
+            payBtn.style.opacity = '0.4';
+            payBtn.style.filter = 'grayscale(1)';
+            payBtn.style.pointerEvents = 'none';
+        }
+    }
+});
+
+// Botón de pago final en el Modal de Checklist
+document.getElementById('btnTraspasoPay')?.addEventListener('click', async () => {
+    const motoId = document.getElementById('checkMotoId').value;
+    const btn = document.getElementById('btnTraspasoPay');
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = 'Generando Túnel Seguro...';
+    
+    try {
+        const response = await window.api.request('/tramites/solicitar', {
+            method: 'POST',
+            headers: window.api.getHeaders(),
+            body: JSON.stringify({ moto_id: parseInt(motoId), tipo: 'traspaso_express' })
+        });
+        
+        if (response.pago_url) {
+            window.location.href = response.pago_url;
+        } else {
+            alert("Trámite registrado. Un gestor te contactará para el pago manual.");
+            window.location.reload();
+        }
+    } catch (e) {
+        alert("Error al iniciar trámite: " + e.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+window.pagarTramite = async function(tramiteId) {
+    try {
+        const response = await window.api.request('/tramites/solicitar', {
+            method: 'POST',
+            headers: window.api.getHeaders(),
+            body: JSON.stringify({ tramite_id: tramiteId, moto_id: 0 }) 
+        });
+        
+        if (response.pago_url) {
+            window.location.href = response.pago_url;
+        }
+    } catch (e) {
+        alert("Error en el pago: " + e.message);
+    }
 }
 
 document.getElementById('btn-send-command')?.addEventListener('click', async () => {

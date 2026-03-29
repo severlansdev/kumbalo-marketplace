@@ -27,10 +27,23 @@ except Exception as e:
     app.state.runt_error = str(e)
 
 try:
-    from backend.routers import auth, motos, payments
+    from backend.routers import auth, motos, payments, tramites, debug
+    from backend.main import sync_db_schema
+    from backend.database import SessionLocal, engine
+    from backend import models
+    from passlib.context import CryptContext
+    
+    # Ejecutar sicronización de BD (Parche de esquema para Traspaso Express)
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    success, error_msg = sync_db_schema(engine, models, SessionLocal, pwd_context)
+    app.state.sync_status = "SUCCESS" if success else "FAILED"
+    app.state.sync_error = error_msg
+    
     app.include_router(auth.router, prefix="/api")
     app.include_router(motos.router, prefix="/api")
     app.include_router(payments.router, prefix="/api")
+    app.include_router(tramites.router, prefix="/api")
+    app.include_router(debug.router, prefix="/api")
 except Exception as e:
     app.state.core_error = str(e)
 
@@ -39,7 +52,13 @@ def router_error():
     return {
         "status": "error", 
         "runt_module": getattr(app.state, 'runt_error', 'OK'),
-        "core_modules": getattr(app.state, 'core_error', 'OK')
+        "core_modules": getattr(app.state, 'core_error', 'OK'),
+        "db_sync": getattr(app.state, 'sync_status', 'NOT_RUN'),
+        "db_error": getattr(app.state, 'sync_error', None),
+        "debug_info": {
+            "path": sys.path[-3:],
+            "cwd": os.getcwd()
+        }
     }
 
 @app.get("/api/v1/health")

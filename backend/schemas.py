@@ -10,6 +10,7 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=8)
     telefono: Optional[str] = None
     ciudad: Optional[str] = None
+    tipo_cuenta: str = "natural" # "natural" o "concesionario"
 
 
 class UserResponse(BaseModel):
@@ -203,3 +204,30 @@ class DashboardStats(BaseModel):
     total_views: int = 0
     motos_activas: int = 0
     motos_vendidas: int = 0
+
+
+# ============ TRAMITES ============
+class TramiteCreate(BaseModel):
+    moto_id: int
+    tipo: str = "traspaso_express"
+
+
+class TramiteResponse(BaseModel):
+    id: int
+    moto_id: int
+    comprador_id: int
+    vendedor_id: int
+    tipo: str
+    estado: str
+    costo_total: float
+    pago_id: Optional[str] = None
+    pago_url: Optional[str] = None
+    radicado_sim: Optional[str] = None
+    documentos_json: Optional[str] = None
+    notas: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    moto: Optional[MotoResponse] = None
+
+    class Config:
+        from_attributes = True

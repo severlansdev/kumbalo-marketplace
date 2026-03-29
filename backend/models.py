@@ -186,9 +186,18 @@ class Tramite(Base):
     comprador_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
     vendedor_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
     tipo = Column(String(50), default="traspaso_express")
-    estado = Column(String(50), default="solicitado") # solicitado, en_notaria, en_transito, finalizado
+    
+    # Workflow Status Detallado
+    estado = Column(String(50), default="solicitado") 
+    # solicitado, pago_pendiente, documentos_pendientes, verificado_kumbalo, cita_agendada, radicado_vum, finalizado
+    
     costo_total = Column(Float, default=440000.0)
     pago_id = Column(String(200), nullable=True) # Referencia de MercadoPago
+    radicado_sim = Column(String(100), nullable=True) # ID oficial del SIM/VUM
+    
+    # JSON con URLs de documentos (Poder, FUN, Contrato, Cédulas)
+    documentos_json = Column(Text, nullable=True) 
+    
     notas = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

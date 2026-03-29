@@ -90,22 +90,40 @@ async def mercadopago_webhook(request: Request, db: Session = Depends(get_db)):
         external_reference = payment_info["response"].get("external_reference")
         
         if payment_status == "approved" and external_reference:
-            # Formato: moto_ID_USERID
-            parts = external_reference.split("_")
-            if len(parts) >= 3:
-                moto_id = int(parts[1])
-                
-                # Actualizar transacción
-                transaccion = db.query(models.Transaccion).filter(models.Transaccion.moto_id == moto_id).first()
-                if transaccion:
-                    transaccion.estado = "completada"
-                
-                # Activar el flag de pago en la moto
-                moto = db.query(models.Moto).filter(models.Moto.id == moto_id).first()
-                if moto:
-                    moto.commission_paid = True
-                    moto.estado = "activa" # Aseguramos que esté visible
-                
-                db.commit()
+            # Caso 1: Comisión de Venta (moto_ID_USERID)
+            if external_reference.startswith("moto_"):
+                parts = external_reference.split("_")
+                if len(parts) >= 3:
+                    moto_id = int(parts[1])
+                    transaccion = db.query(models.Transaccion).filter(models.Transaccion.moto_id == moto_id).first()
+                    if transaccion:
+                        transaccion.estado = "completada"
+                    moto = db.query(models.Moto).filter(models.Moto.id == moto_id).first()
+                    if moto:
+                        moto.commission_paid = True
+                        moto.estado = "activa"
+                    db.commit()
+            
+            # Caso 2: Traspaso Express (tramite_ID_USERID)
+            elif external_reference.startswith("tramite_"):
+                parts = external_reference.split("_")
+                if len(parts) >= 3:
+                    tramite_id = int(parts[1])
+                    tramite = db.query(models.Tramite).filter(models.Tramite.id == tramite_id).first()
+                    if tramite:
+                        tramite.estado = "documentos_pendientes"
+                        tramite.notas = f"Pago aprobado vía MercadoPago (Ref: {payment_id})"
+                        db.commit()
+                        
+                        # Crear notificación para el usuario
+                        nueva_notif = models.Notificacion(
+                            usuario_id=tramite.comprador_id,
+                            tipo="sistema",
+                            titulo="Pago de Trámite Recibido",
+                            contenido=f"Tu pago para el traspaso de la moto ha sido confirmado. Por favor carga los documentos necesarios.",
+                            url=f"/dashboard.html?tramite_id={tramite.id}"
+                        )
+                        db.add(nueva_notif)
+                        db.commit()
                 
     return {"status": "ok"}

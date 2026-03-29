@@ -1,0 +1,58 @@
+# Estrategia: Implementación Real de 'Traspaso Express Kumbalo'
+
+Este documento detalla la hoja de ruta técnica y de negocio para transformar el prototipo actual del servicio de trámites en una solución digital robusta y operativa ("No Simulada").
+
+## 1. Lógica del Servicio (Vista 360°)
+
+Basado en el marco legal colombiano y la visión de Kumbalo, el servicio debe funcionar como un **orquestador de documentos y pagos** entre el comprador, el vendedor y las autoridades territoriales (SIM/VUM/Notaría).
+
+### Componentes Críticos:
+*   **Validación Previa**: Chequeo automático de RUNT (Multas, SOAT, RTM) antes de permitir el pago.
+*   **Generador de Documentos**: Creación automática de Contrato de Compraventa y Formulario Único Nacional (FUN) con datos del perfil.
+*   **Biometría Digital**: Integración con proveedores (ej: SoyYo, ReconoSer) para validación de identidad.
+
+---
+
+## 2. Propuesta de Implementación Técnica
+
+### [MODIFICAR] [models.py](file:///c:/Users/braya/OneDrive/Documentos/proyecto%20marketplace/backend/models.py)
+Aumentar el modelo `Tramite` para soportar el flujo de documentos y estados detallados.
+*   `documentos_json`: Campo JSON para URLs de archivos (Contrato, Poder, Recibo Pago Impuestos).
+*   `workflow_status`: Enum detallado (`validacion_inicial`, `pago_completado`, `documentos_cargados`, `verificado_gestor`, `cita_biometria`, `radicado_transito`, `completado`).
+
+### [MODIFICAR] [tramites.py](file:///c:/Users/braya/OneDrive/Documentos/proyecto%20marketplace/backend/routers/tramites.py)
+*   **Endpoint `/pagar`**: Generar preferencia de MercadoPago por $440,000 vinculada al `tramite_id`.
+*   **Endpoint `/subir-documentos`**: Manejo de carga de archivos a S3.
+*   **Webhook MercadoPago**: Actualizar estado del trámite tras confirmar el pago.
+
+---
+
+## 3. Modelo Financiero y Procesos
+
+### Estructura de Inversión (Estimado en COP)
+Para hacerlo real, Kumbalo debe cubrir costos operativos fijos por trámite:
+*   **Derechos de Tránsito (SIM/VUM)**: ~$200,000 (Promedio nacional).
+*   **Honorarios Gestor/Notaría**: ~$80.000 (Incluye biometría).
+*   **Kumbalo Fee (Revenue)**: **$160,000** (Margen bruto ~36%).
+
+### Proceso de Activación
+1.  **Alianza Notarial**: Enlace directo con una Notaría (ej: Notaría 25 de Bogotá) para biometría prioritaria.
+2.  **Dashboard de Gestores**: Creación de un panel interno donde un empleado de Kumbalo ve la cola de trámites pagados y documentos listos para radicar.
+3.  **Sistema de Notificaciones**: WhatsApp/Email en cada cambio de estado (RTM vencida? Notificar al vendedor de inmediato).
+
+---
+
+## 4. Preguntas Abiertas para el Usuario
+
+> [!IMPORTANT]
+> **Definición de Alcance Regional**
+> ¿El servicio de $440k "Todo Incluido" cubrirá solo Bogotá/Cundinamarca inicialmente, o tenemos ya alianzas para Medellín y Cali?
+
+> [!CAUTION]
+> **Manejo de Impuestos de Vehículo**
+> ¿El pago de impuestos pendientes del año corriente será un costo adicional para el usuario o se descontará del valor de venta? (Recomendamos que sea adicional).
+
+## 5. Plan de Verificación
+
+1.  **Prueba de 'Golden Path'**: Desde la solicitud hasta el 'radicado' simulando el webhook de pago.
+2.  **Validación de Documentos**: Asegurar que los PDFs generados cumplen con el estándar FUN de tránsito.
