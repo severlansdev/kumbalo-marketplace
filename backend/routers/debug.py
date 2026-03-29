@@ -57,6 +57,7 @@ def seed_db(db: Session = Depends(get_db)):
             propietario_id=auditor.id,
             commission_fee=calculate_kumbalo_fee(54900000.0),
             commission_type="fixed",
+            commission_paid=True, # Habilitar Traspaso de inmediato
             estado="activa"
         )
         db.add(moto)
