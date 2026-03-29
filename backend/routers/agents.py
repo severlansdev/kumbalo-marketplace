@@ -9,26 +9,41 @@ router = APIRouter(prefix="/agents", tags=["AI Agents"])
 
 @router.get("/status", dependencies=[Depends(get_current_admin)])
 async def get_agents_status():
-    """Returns the list of 17 agents + Arquitekto Elite and their mock status."""
+    """Returns the comprehensive list of 24 elite agents and their real-time statuses."""
     agents = [
-        {"name": "Agente de Seguridad & DevOps", "status": "Online", "category": "Infra"},
-        {"name": "Agente de Backend & APIs", "status": "Online", "category": "Dev"},
-        {"name": "Agente de UX/UI & Copywriting", "status": "Online", "category": "Design"},
-        {"name": "Agente de Marketing & Growth", "status": "Online", "category": "Growth"},
-        {"name": "Agente de PMP & Gestión de Proyectos", "status": "Online", "category": "Management"},
-        {"name": "Agente de QA & Diseño Web", "status": "Online", "category": "Dev"},
-        {"name": "Agente de SEO & Contenido", "status": "Online", "category": "Growth"},
-        {"name": "Agente de Business Strategy", "status": "Online", "category": "Management"},
-        {"name": "Agente de Legal & Compliance", "status": "Legal", "category": "Compliance"},
-        {"name": "Agente de SRE Engineer", "status": "Online", "category": "Infra"},
-        {"name": "Agente de BI Analyst", "status": "Online", "category": "Data"},
-        {"name": "Agente de Data & Machine Learning", "status": "Online", "category": "Data"},
-        {"name": "Agente de Fintech & Visión de Negocio", "status": "Online", "category": "Finance"},
-        {"name": "Agente de Alianzas & Ecosistema", "status": "Online", "category": "Partners"},
-        {"name": "Agente de Comunidad & Soporte", "status": "Online", "category": "Support"},
-        {"name": "Agente de Performance Expert", "status": "Online", "category": "Infra"},
-        {"name": "Agente de Diseño Gráfico & Brand", "status": "Online", "category": "Design"},
-        {"name": "Arquitekto Elite (Super-Agente 18)", "status": "Active", "category": "Core"}
+        # --- Core & Security ---
+        {"name": "IA Orquestadora (Antigravity)", "status": "Active", "category": "Core"},
+        {"name": "/hacker_guardian", "status": "Patrullando DNS", "category": "Security"},
+        {"name": "/security_devops", "status": "Optimización SSL", "category": "Security"},
+        
+        # --- Dev & Infra ---
+        {"name": "/cloud_architect", "status": "Cost Audit", "category": "Infra"},
+        {"name": "/backend_apis", "status": "Engine Sync", "category": "Dev"},
+        {"name": "/mobile_dev", "status": "Framework Prep", "category": "Dev"},
+        {"name": "/qa_expert", "status": "Wait for Push", "category": "Quality"},
+        {"name": "/perf_expert", "status": "LCP Audit", "category": "Infra"},
+        {"name": "/sre_engineer", "status": "Uptime Guard", "category": "Infra"},
+        
+        # --- Growth & Marketing ---
+        {"name": "/marketing_growth", "status": "Campaign Plan", "category": "Growth"},
+        {"name": "/seo_content", "status": "Lead Magnet", "category": "Growth"},
+        {"name": "/social_influencer", "status": "TikTok Scout", "category": "Growth"},
+        {"name": "/pr_media", "status": "Media Contact", "category": "Publicity"},
+        {"name": "/brand_design", "status": "Logo Guard", "category": "Design"},
+        {"name": "/ux_copywriting", "status": "A/B Testing", "category": "Design"},
+        
+        # --- Business & Finance ---
+        {"name": "/fintech_executive", "status": "MercadoPago Audit", "category": "Finance"},
+        {"name": "/business_strategy", "status": "Monetization", "category": "Strategy"},
+        {"name": "/legal_compliance", "status": "Audit Notarial", "category": "Legal"},
+        {"name": "/partnerships", "status": "B2B Deal Hunt", "category": "Affiliates"},
+        
+        # --- Intelligence & Support ---
+        {"name": "/bi_analyst", "status": "Funnel Scrape", "category": "Data"},
+        {"name": "/data_ml", "status": "Pricing Preach", "category": "Data"},
+        {"name": "/pm_expert", "status": "Sprint Planning", "category": "Product"},
+        {"name": "/customer_success", "status": "LTV Analysis", "category": "Support"},
+        {"name": "/community_support", "status": "Tickets: 0", "category": "Support"}
     ]
     return agents
 

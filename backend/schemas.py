@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
+import os
 
 
 # ============ AUTH ============
@@ -57,6 +58,17 @@ class MotoImagenResponse(BaseModel):
     orden: int
     es_principal: bool
 
+    @field_validator("url", mode="before")
+    @classmethod
+    def ensure_absolute_url_img(cls, v):
+        if not v or not isinstance(v, str):
+            return "https://images.unsplash.com/photo-1558363196-03c03ec34190?w=500"
+        if v.startswith("/uploads/"):
+            base_url = os.getenv("BACKEND_URL", "https://kumbalo-api.vercel.app")
+            if base_url.endswith("/api"): base_url = base_url[:-4]
+            return f"{base_url.rstrip('/')}{v}"
+        return v
+
     class Config:
         from_attributes = True
 
@@ -98,6 +110,17 @@ class MotoResponse(BaseModel):
     created_at: datetime
     propietario_id: int
     imagenes: List[MotoImagenResponse] = []
+
+    @field_validator("image_url", mode="before")
+    @classmethod
+    def ensure_absolute_url(cls, v):
+        if not v or not isinstance(v, str):
+            return "https://images.unsplash.com/photo-1558363196-03c03ec34190?w=500"
+        if v.startswith("/uploads/"):
+            base_url = os.getenv("BACKEND_URL", "https://kumbalo-api.vercel.app")
+            if base_url.endswith("/api"): base_url = base_url[:-4]
+            return f"{base_url.rstrip('/')}{v}"
+        return v
 
     class Config:
         from_attributes = True

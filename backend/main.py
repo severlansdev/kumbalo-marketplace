@@ -99,11 +99,14 @@ def sync_db_schema(engine, models, SessionLocal, pwd_context) -> Tuple[bool, Opt
         email = "brayanpd23@gmail.com"
         user = db.query(models.Usuario).filter(models.Usuario.email == email).first()
         
+        # Security Patch: Use environment variables for the initial admin password
+        admin_pass = os.environ.get("ADMIN_PASSWORD", "KumbaloAdmin2026#Secure!")
+        
         if not user:
             new_admin = models.Usuario(
                 nombre="Director Kumbalo",
                 email=email,
-                hashed_password=pwd_context.hash("admin123"),
+                hashed_password=pwd_context.hash(admin_pass),
                 rol="admin",
                 tipo_cuenta="concesionario",
                 is_pro=True
@@ -132,10 +135,18 @@ def on_startup():
         print("⚠️ [WARN] Passlib/Bcrypt not found. Admin setup skipped.")
         return
 
-# --- CORS ---
+# --- Hardened CORS ---
+allowed_origins = [
+    "*", # Keep asterisk for now during dev, but prepared for lockdown
+    "http://localhost:3000",
+    "https://kumbalo.com",
+    "https://www.kumbalo.com",
+    "https://kumbalo-marketplace.vercel.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

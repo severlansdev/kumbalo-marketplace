@@ -393,24 +393,38 @@ const animations = {
         if (!window.api) return;
         
         const navButtons = document.querySelector('.nav-buttons');
+        const mobileTabBar = document.querySelector('.mobile-tab-bar');
+        
         if (!navButtons) return;
 
         if (window.api.isAuthenticated()) {
-            // Usuario está logueado: Ocultamos Ingresar/Registrarse y mostramos Dashboard
+            // 1. Ocultar botones de Auth en el Header (Escritorio)
             const authLinks = navButtons.querySelectorAll('a[href="login.html"], a[href="registro.html"]');
-            authLinks.forEach(link => link.style.display = 'none');
+            authLinks.forEach(link => {
+                link.style.display = 'none';
+                link.classList.add('hidden-auth');
+            });
 
-            // Evitar duplicados del botón dashboard
+            // 2. Añadir botón de Dashboard si no existe
             if (!document.getElementById('header-dash-btn')) {
                 const dashBtn = document.createElement('a');
                 dashBtn.id = 'header-dash-btn';
                 dashBtn.href = 'dashboard.html';
-                dashBtn.className = 'btn btn-primary hide-mobile';
+                dashBtn.className = 'btn btn-primary';
                 dashBtn.innerHTML = `
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
                     Mi Dashboard
                 `;
                 navButtons.insertBefore(dashBtn, navButtons.firstChild);
+            }
+
+            // 3. Actualizar Tab Bar Móvil (Perfil -> Dashboard)
+            if (mobileTabBar) {
+                const profileTab = mobileTabBar.querySelector('a[href="login.html"]');
+                if (profileTab) {
+                    profileTab.href = 'dashboard.html';
+                    profileTab.querySelector('span').textContent = 'Dashboard';
+                }
             }
         }
     }

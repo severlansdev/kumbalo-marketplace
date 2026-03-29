@@ -328,11 +328,15 @@ function setupAICounterLogs() {
     const logsContainer = document.getElementById('ai-logs');
     const scenarios = [
         "[SEO] Actualizando sitemap.xml... OK",
-        "[SEGURIDAD] Bloqueando intento de fuerza bruta IP 192.168.1.1",
-        "[FINTECH] Calculando comisiones del día... +$12.50 USD",
-        "[PERF] Minimizando assets... LCP reducido a 0.8s",
-        "[QA] Ejecutando tests de regresión en /login... PASS",
-        "[ARQUITEKTO] Optimizando balanceo de carga en Vercel Edge"
+        "[HACKER GUARDIAN] Bloqueando intento de fuerza bruta IP 192.168.1.1",
+        "[FINTECH] Sincronizando túnel de MercadoPago... OK",
+        "[MOBILE DEV] Optimizando assets para Android/iOS",
+        "[CLOUD ARCHITECT] Auditando costos de Vercel... -$2.50 USD",
+        "[PR MEDIA] Generando nota de prensa para Publimotos",
+        "[UX] Ejecutando test A/B en el flujo de registro",
+        "[ARQUITEKTO] Coordinando despliegue de 24 agentes...",
+        "[SRE] Verificando Latencia en Medellín: 12ms",
+        "[QA] Suite de pruebas automatizadas: 100% PASS"
     ];
 
     setInterval(() => {
@@ -343,7 +347,7 @@ function setupAICounterLogs() {
         logsContainer.appendChild(entry);
         logsContainer.scrollTop = logsContainer.scrollHeight;
         if (logsContainer.children.length > 20) logsContainer.removeChild(logsContainer.firstChild);
-    }, 4000);
+    }, 3000);
 }
 
 // Tab Switching

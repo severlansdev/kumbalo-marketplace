@@ -6,6 +6,7 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/(.*)", "destination": "/frontend/$1" }
+    { "source": "/(.*)\\.(js|css|png|jpg|jpeg|gif|ico|svg|webp|woff|woff2)$", "destination": "/frontend/$0" },
+    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ]
 }
