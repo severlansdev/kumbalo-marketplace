@@ -6,7 +6,8 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/(css|js|assets|images|ico|svg|assets)/(.*)", "destination": "/frontend/$1/$2" },
-    { "source": "/((?!api/|css/|js/|assets/|images/).*)", "destination": "/frontend/index.html" }
+    { "source": "/(css|js|assets|images|ico|svg)/(.*)", "destination": "/frontend/$1/$2" },
+    { "source": "/(.*\\.(html|svg|png|jpg|jpeg|webp))$", "destination": "/frontend/$1" },
+    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ]
 }
