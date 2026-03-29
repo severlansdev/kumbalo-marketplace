@@ -65,46 +65,35 @@ def sync_db_schema(engine, models, SessionLocal, pwd_context) -> Tuple[bool, Opt
         from sqlalchemy import text
         models.Base.metadata.create_all(bind=engine)
         
-        # Parche de esquema manual para evitar Error 500
-        with engine.connect() as conn:
-            # Asegurar columnas en tabla 'tramites'
-            tramites_cols = [
+        # Parche de esquema manual para evitar Error 500 - Ejecución atómica por columna
+        all_cols = {
+            "tramites": [
                 ("radicado_sim", "VARCHAR(100)"),
                 ("documentos_json", "TEXT"),
                 ("notas", "TEXT")
-            ]
-            for col_name, col_type in tramites_cols:
-                try:
-                    conn.execute(text(f"ALTER TABLE tramites ADD COLUMN {col_name} {col_type}"))
-                    conn.commit()
-                except Exception as e:
-                    pass
-            
-            # Asegurar columnas en tabla 'motos'
-            motos_cols = [
+            ],
+            "motos": [
                 ("commission_fee", "FLOAT DEFAULT 0.0"),
                 ("commission_type", "VARCHAR(20) DEFAULT 'fixed'"),
                 ("commission_paid", "BOOLEAN DEFAULT FALSE")
-            ]
-            for col_name, col_type in motos_cols:
-                try:
-                    conn.execute(text(f"ALTER TABLE motos ADD COLUMN {col_name} {col_type}"))
-                    conn.commit()
-                except Exception:
-                    pass
-
-            # Asegurar columnas en tabla 'usuarios'
-            usuarios_cols = [
+            ],
+            "usuarios": [
                 ("telefono", "VARCHAR(20)"),
                 ("rol", "VARCHAR(20) DEFAULT 'usuario'"),
                 ("tipo_cuenta", "VARCHAR(20) DEFAULT 'natural'")
             ]
-            for col_name, col_type in usuarios_cols:
-                try:
-                    conn.execute(text(f"ALTER TABLE usuarios ADD COLUMN {col_name} {col_type}"))
-                    conn.commit()
-                except Exception:
-                    pass
+        }
+
+        from sqlalchemy import text
+        for table, cols in all_cols.items():
+            for col_name, col_type in cols:
+                # Cada columna se intenta en una conexión/transacción separada
+                with engine.connect() as conn:
+                    try:
+                        conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}"))
+                        conn.commit()
+                    except Exception:
+                        pass # Si la columna ya existe o falla, seguimos con la siguiente
         
         db = SessionLocal()
         email = "brayanpd23@gmail.com"
