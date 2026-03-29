@@ -45,7 +45,8 @@ try:
     app.include_router(tramites.router, prefix="/api")
     app.include_router(debug.router, prefix="/api")
 except Exception as e:
-    app.state.core_error = str(e)
+    import traceback
+    app.state.core_error = f"{str(e)} | Trace: {traceback.format_exc()}"
 
 @app.get("/api/v1/error")
 def router_error():
@@ -56,7 +57,7 @@ def router_error():
         "db_sync": getattr(app.state, 'sync_status', 'NOT_RUN'),
         "db_error": getattr(app.state, 'sync_error', None),
         "debug_info": {
-            "path": sys.path[-3:],
+            "sys_path": sys.path,
             "cwd": os.getcwd()
         }
     }
