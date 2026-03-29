@@ -23,10 +23,10 @@ def upload_image_to_s3(file_obj, filename: str, content_type: str) -> str:
     bucket_name = os.getenv("AWS_S3_BUCKET_NAME")
     access_key = os.getenv("AWS_ACCESS_KEY_ID")
     
-    # Placeholders de alta calidad
+    # Placeholders de alta calidad (IDs verificados)
     placeholders = [
-        "https://images.unsplash.com/photo-1558981403-c5f91ebafc08?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?q=80&w=1000&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1558363196-03c03ec34190?q=80&w=1000&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1568772589808-62ea49939c23?q=80&w=1000&auto=format&fit=crop",
         "https://images.unsplash.com/photo-1449495169669-7b118f960237?q=80&w=1000&auto=format&fit=crop"
     ]
     import random

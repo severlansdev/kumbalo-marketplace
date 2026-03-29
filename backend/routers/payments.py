@@ -58,11 +58,17 @@ async def create_preference(
         
         # Validar respuesta exitosa (200 o 201)
         if preference_response["status"] not in [200, 201]:
-            error_detail = preference_response.get("response", {}).get("message", "Error desconocido en MercadoPago")
-            raise HTTPException(
-                status_code=400, 
-                detail=f"MercadoPago no pudo crear la preferencia: {error_detail}"
-            )
+            error_status = preference_response["status"]
+            error_resp = preference_response.get("response", {})
+            error_msg = error_resp.get("message", "Error desconocido")
+            
+            # Feedback específico para errores de autenticación
+            if error_status == 401:
+                detail = "Error de Configuración Fintech: El Access Token de MercadoPago es inválido o ha expirado. Por favor contacta al administrador para actualizar las Secret Keys en Vercel."
+            else:
+                detail = f"MercadoPago Error ({error_status}): {error_msg}"
+                
+            raise HTTPException(status_code=400, detail=detail)
             
         preference = preference_response["response"]
         

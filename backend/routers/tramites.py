@@ -95,6 +95,21 @@ async def solicitar_tramite(
 
     try:
         preference_response = sdk.preference().create(preference_data)
+        
+        # Validar respuesta exitosa (200 o 201)
+        if preference_response["status"] not in [200, 201]:
+            error_status = preference_response["status"]
+            error_resp = preference_response.get("response", {})
+            error_msg = error_resp.get("message", "Error desconocido")
+            
+            # Feedback específico para errores de autenticación
+            if error_status == 401:
+                detail = "Error de Configuración Fintech: El Access Token de MercadoPago es inválido o ha expirado. Por favor contacta al administrador."
+            else:
+                detail = f"MercadoPago Error ({error_status}): {error_msg}"
+                
+            raise HTTPException(status_code=400, detail=detail)
+            
         preference = preference_response["response"]
         
         # Guardar el ID de preferencia como pago_id temporal
@@ -105,8 +120,10 @@ async def solicitar_tramite(
         setattr(nuevo_tramite, 'pago_url', preference["init_point"])
         
         return nuevo_tramite
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al generar link de pago: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error inesperado al generar link de pago: {str(e)}")
 
 @router.get("/mis-tramites")
 async def get_mis_tramites(

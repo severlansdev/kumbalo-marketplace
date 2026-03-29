@@ -116,7 +116,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             card.innerHTML = `
                 <div class="listing-image">
-                    <img src="${moto.image_url || 'https://images.unsplash.com/photo-1558981806-ec527fa84c3d?w=500'}" alt="${moto.marca} ${moto.modelo}">
+                    <img src="${moto.image_url || 'https://images.unsplash.com/photo-1558363196-03c03ec34190?w=500'}" 
+                         alt="${moto.marca} ${moto.modelo}" 
+                         onerror="this.src='https://images.unsplash.com/photo-1449495169669-7b118f960237?w=500';">
                     <span class="badge ${moto.commission_paid ? 'badge-new' : 'badge-premium'}" style="background: ${moto.commission_paid ? 'var(--success)' : 'var(--primary)'}">
                         ${moto.commission_paid ? 'Publicada' : 'Pendiente Pago'}
                     </span>
