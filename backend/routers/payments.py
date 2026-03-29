@@ -55,7 +55,23 @@ async def create_preference(
 
     try:
         preference_response = sdk.preference().create(preference_data)
+        
+        # Validar respuesta exitosa (200 o 201)
+        if preference_response["status"] not in [200, 201]:
+            error_detail = preference_response.get("response", {}).get("message", "Error desconocido en MercadoPago")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"MercadoPago no pudo crear la preferencia: {error_detail}"
+            )
+            
         preference = preference_response["response"]
+        
+        # Validar existencia de los campos necesarios
+        if "id" not in preference or "init_point" not in preference:
+            raise HTTPException(
+                status_code=500, 
+                detail="Respuesta incompleta de MercadoPago (falta ID o Punto de Inicio)"
+            )
         
         # Registrar el intento de transacción como pendiente
         nueva_transaccion = models.Transaccion(
@@ -72,10 +88,12 @@ async def create_preference(
 
         return {
             "preference_id": preference["id"],
-            "init_point": preference["init_point"] # El link de pago real
+            "init_point": preference["init_point"]
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creando preferencia de pago: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error inesperado en Fintech: {str(e)}")
 
 @router.post("/webhook")
 async def mercadopago_webhook(request: Request, db: Session = Depends(get_db)):
