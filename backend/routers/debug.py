@@ -17,11 +17,15 @@ def db_check(db: Session = Depends(get_db)):
         # Check columns of 'tramites'
         tramites_cols = db.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='tramites'")).fetchall()
         
+        # Check columns of 'usuarios'
+        usuarios_cols = db.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='usuarios'")).fetchall()
+        
         return {
             "status": "connected",
             "tables": [t[0] for t in tables],
             "motos_columns": [c[0] for c in motos_cols],
-            "tramites_columns": [c[0] for c in tramites_cols]
+            "tramites_columns": [c[0] for c in tramites_cols],
+            "usuarios_columns": [c[0] for c in usuarios_cols]
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
