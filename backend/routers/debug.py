@@ -29,3 +29,40 @@ def db_check(db: Session = Depends(get_db)):
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+@router.get("/seed")
+def seed_db(db: Session = Depends(get_db)):
+    try:
+        from .. import models
+        from ..utils.fees import calculate_kumbalo_fee
+        
+        # 1. Buscar o crear el Auditor
+        auditor = db.query(models.Usuario).filter(models.Usuario.email == "auditor_qa@kumbalo.com").first()
+        if not auditor:
+            return {"status": "error", "message": "Debes registrar el usuario auditor_qa@kumbalo.com primero."}
+        
+        # 2. Crear la Yamaha MT-09
+        moto = models.Moto(
+            marca="Yamaha",
+            modelo="MT-09 SP 2024",
+            año=2024,
+            precio=54900000.0,
+            kilometraje=1200,
+            cilindraje=890,
+            color="Icon Performance",
+            transmision="manual",
+            combustible="gasolina",
+            ciudad="Bogotá",
+            descripcion="Auditoría QA - Moto de pruebas para Traspaso Express.",
+            propietario_id=auditor.id,
+            commission_fee=calculate_kumbalo_fee(54900000.0),
+            commission_type="fixed",
+            estado="activa"
+        )
+        db.add(moto)
+        db.commit()
+        db.refresh(moto)
+        
+        return {"status": "success", "message": "Moto creada para auditoría", "moto_id": moto.id}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
