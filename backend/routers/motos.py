@@ -44,12 +44,6 @@ def get_motos(
     motos = query.order_by(models.Moto.created_at.desc()).offset(skip).limit(limit).all()
     return motos
 
-@router.get("/{moto_id}", response_model=schemas.MotoResponse)
-def get_moto(moto_id: int, db: Session = Depends(get_db)):
-    moto = db.query(models.Moto).filter(models.Moto.id == moto_id).first()
-    if not moto:
-        raise HTTPException(status_code=404, detail="Moto no encontrada")
-    return moto
 
 @router.post("/", response_model=schemas.MotoResponse)
 async def create_moto(
@@ -122,6 +116,13 @@ async def create_moto(
 def get_mis_motos(db: Session = Depends(get_db), current_user: models.Usuario = Depends(get_current_user)):
     # Trae exclusivamente las motos del usuario en sesion (Dashboard)
     return db.query(models.Moto).filter(models.Moto.propietario_id == current_user.id).order_by(models.Moto.created_at.desc()).all()
+
+@router.get("/{moto_id}", response_model=schemas.MotoResponse)
+def get_moto(moto_id: int, db: Session = Depends(get_db)):
+    moto = db.query(models.Moto).filter(models.Moto.id == moto_id).first()
+    if not moto:
+        raise HTTPException(status_code=404, detail="Moto no encontrada")
+    return moto
 
 @router.post("/{moto_id}/favorito")
 def toggle_favorito(moto_id: int, db: Session = Depends(get_db), current_user: models.Usuario = Depends(get_current_user)):
