@@ -87,15 +87,16 @@
     <!-- Google Fonts - Premium Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
     <link rel="stylesheet" href="css/brand.css">
     <link rel="stylesheet" href="css/styles.css">
 
     <!-- GSAP for Epic Animations -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js" defer></script>
 </head>
 <body>
     <!-- Header -->
@@ -132,7 +133,8 @@
 
     <!-- Hero Section -->
     <section id="inicio" class="hero" aria-labelledby="hero-title">
-        <video autoplay muted loop playsinline class="hero-video">
+        <!-- Preload high priority asset & use first frame poster for seamless loop -->
+        <video autoplay muted loop playsinline preload="auto" poster="assets/interactivos/1.jpeg" class="hero-video" id="heroVideo">
             <source src="assets/interactivos/video5.mp4" type="video/mp4">
         </video>
         <div class="hero-overlay"></div>
@@ -218,7 +220,7 @@
                 <!-- Listing Card 1 -->
                 <article class="listing-card">
                     <div class="listing-image">
-                        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c3d?w=500" alt="Yamaha MT-09 2024">
+                        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c3d?w=500" alt="Yamaha MT-09 2024" loading="lazy" width="500" height="350">
                         <span class="badge badge-new">Nueva</span>
                     </div>
                     <div class="listing-content">
@@ -236,7 +238,7 @@
                 <!-- Listing Card 2 -->
                 <article class="listing-card">
                     <div class="listing-image">
-                        <img src="https://images.unsplash.com/photo-1568772589808-62ea49939c23?w=500" alt="Kawasaki Ninja ZX-10R">
+                        <img src="https://images.unsplash.com/photo-1568772589808-62ea49939c23?w=500" alt="Kawasaki Ninja ZX-10R" loading="lazy" width="500" height="350">
                         <span class="badge badge-premium">Premium</span>
                     </div>
                     <div class="listing-content">
@@ -254,7 +256,7 @@
                 <!-- Listing Card 3 -->
                 <article class="listing-card">
                     <div class="listing-image">
-                        <img src="https://images.unsplash.com/photo-1591637333988-524f27e2c636?w=500" alt="Ducati Panigale V4">
+                        <img src="https://images.unsplash.com/photo-1591637333988-524f27e2c636?w=500" alt="Ducati Panigale V4" loading="lazy" width="500" height="350">
                         <span class="badge badge-hot">Hot</span>
                     </div>
                     <div class="listing-content">
@@ -649,11 +651,11 @@
     </footer>
 
     <!-- App Scripts -->
-    <script src="js/theme.js"></script>
-    <script src="js/sanitizer.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/index.js"></script>
+    <script src="js/theme.js" defer></script>
+    <script src="js/sanitizer.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/index.js" defer></script>
     
     <!-- GSAP Animations & UI Logic Init -->
     <!-- Mobile Bottom Tab Bar -->
