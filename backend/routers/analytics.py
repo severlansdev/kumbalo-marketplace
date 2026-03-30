@@ -109,6 +109,19 @@ async def get_predictive_alerts(current_user: models.Usuario = Depends(get_curre
             "cta": "Ver Catálogo",
             "priority": "Medium"
         })
+@router.get("/price-suggestion/{brand}/{model}")
+async def get_price_suggestion(brand: str, model: str):
+    """Retorna una sugerencia de precio basada en el mercado real para el formulario de creación."""
+    avg = await get_real_market_average(brand, model)
+    if avg:
+        return {
+            "suggested_price": avg,
+            "min_suggested": avg * 0.9,
+            "max_suggested": avg * 1.1,
+            "message": f"El Arquitekto sugiere vender entre {avg*0.9:,.0f} y {avg*1.1:,.0f} COP."
+        }
+    else:
+        return {"error": "Insufficient data"}
 
     return alerts
 

@@ -152,96 +152,104 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Lógica del Tasador IA (Smart Pricing) ---
-    const calculatePricing = () => {
-        const brand = document.getElementById('brand').value.toLowerCase();
-        const year = parseInt(document.getElementById('year').value) || 2015;
-        const engine = parseInt(document.getElementById('engine').value) || 150;
-        const priceInput = document.getElementById('price').value;
+    // --- Lógica del Tasador IA REAL (Smart Pricing con MercadoLibre API) ---
+    let lastSuggestedPrice = null;
+    let debounceTimer;
+
+    const fetchRealSuggestion = async () => {
+        const brand = document.getElementById('brand').value;
+        const model = document.getElementById('model').value;
         
+        if (!brand || model.length < 2) return;
+
+        const widget = document.getElementById('pricingWidget');
+        const feedbackMsg = document.getElementById('pricingFeedbackMessage');
+        feedbackMsg.innerHTML = '<span class="loading-spinner"></span> Consultando mercado real en Colombia...';
+
+        try {
+            const data = await window.api.request(`/analytics/price-suggestion/${encodeURIComponent(brand)}/${encodeURIComponent(model)}`, {
+                method: 'GET'
+            });
+
+            if (data && data.suggested_price) {
+                lastSuggestedPrice = data.suggested_price;
+                updatePricingUI();
+            } else {
+                feedbackMsg.innerHTML = 'No hay suficientes datos recientes para este modelo exacto. Basándonos en la marca, usa un precio competitivo.';
+            }
+        } catch (e) {
+            console.error("Error fetching price suggestion:", e);
+        }
+    };
+
+    const updatePricingUI = () => {
+        const priceInput = document.getElementById('price').value;
         const widget = document.getElementById('pricingWidget');
         const feedbackMsg = document.getElementById('pricingFeedbackMessage');
         
-        if(!widget) return;
+        if(!widget || !lastSuggestedPrice) return;
         
         if(!priceInput || priceInput < 100000) {
-            widget.style.borderColor = 'var(--primary)';
+            widget.style.borderLeftColor = 'var(--primary)';
             widget.style.backgroundColor = 'var(--gray-light)';
-            feedbackMsg.innerHTML = 'Ingresa todos los datos y el precio para calcular la tasación en vivo...';
+            feedbackMsg.innerHTML = `<strong>Sugerencia IA:</strong> El precio promedio en Colombia para este modelo es de <b>${lastSuggestedPrice.toLocaleString()} COP</b>.`;
             return;
         }
         
-        const IP = parseInt(priceInput);
-        
-        // Mock Predicción
-        let base = 6000000;
-        if(brand.includes('ducati') || brand.includes('bmw') || brand.includes('harley')) base = 35000000;
-        else if(brand.includes('yamaha') || brand.includes('honda')) base = 8000000;
-        
-        // Multipliers
-        const currentY = new Date().getFullYear();
-        let yearMult = 1 - ((currentY - year) * 0.05);
-        if (yearMult < 0.3) yearMult = 0.3;
-        
-        const engineAdd = (engine / 150) * 2000000;
-        
-        const estimatedPrice = (base * yearMult) + engineAdd;
-        
-        // --- Nueva Lógica de Comisión Fija "Adiós al 3%" ---
-        const updateCommission = (price) => {
-            const commWidget = document.getElementById('commissionWidget');
-            const commValueLabel = document.getElementById('commissionValue');
-            const savingsMsg = document.getElementById('savingsMessage');
-            
-            if(!commWidget) return;
-            
-            if(!price || price < 500000) {
-                commWidget.style.display = 'none';
-                return;
-            }
-            
-            commWidget.style.display = 'block';
-            let fee = 150000;
-            if(price >= 20000000) fee = 500000;
-            else if(price >= 10000000) fee = 250000;
-            
-            const traditional3Percent = price * 0.03;
-            const savings = traditional3Percent - fee;
-            
-            commValueLabel.innerText = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(fee);
-            
-            if(savings > 0) {
-                savingsMsg.style.display = 'block';
-                savingsMsg.innerText = `📉 Ahorras ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(savings)} frente al 3% tradicional`;
-            } else {
-                savingsMsg.style.display = 'none';
-            }
-        };
+        const userPrice = parseInt(priceInput);
+        const diff = ((userPrice - lastSuggestedPrice) / lastSuggestedPrice) * 100;
 
-        // Análisis del Tasador IA
-        if(IP <= estimatedPrice * 0.90) {
-            widget.style.borderColor = 'var(--success)';
+        if (diff <= -5) {
             widget.style.backgroundColor = '#ecfdf5';
-            feedbackMsg.innerHTML = '<strong>¡Precio Excelente! 🔥</strong> Tu moto está tasada por debajo del mercado. ¡Se venderá rapidísimo!';
+            widget.style.borderLeftColor = 'var(--success)';
+            feedbackMsg.innerHTML = `<strong>¡Precio de Oferta! 🔥</strong> Estás un ${Math.abs(diff).toFixed(1)}% abajo del mercado (${lastSuggestedPrice.toLocaleString()} COP). ¡Se venderá hoy mismo!`;
             feedbackMsg.style.color = 'var(--success-dark)';
-        } else if (IP <= estimatedPrice * 1.15) {
-            widget.style.borderColor = '#3b82f6';
+        } else if (diff <= 10) {
             widget.style.backgroundColor = '#eff6ff';
-            feedbackMsg.innerHTML = '<strong>Precio Justo ✅</strong> El valor está dentro del promedio nacional para esta marca, año y cilindraje.';
+            widget.style.borderLeftColor = '#3b82f6';
+            feedbackMsg.innerHTML = `<strong>Precio de Mercado ✅</strong> Estás en el rango justo (${lastSuggestedPrice.toLocaleString()} COP prom). Es un valor competitivo para Bogotá/Medellín.`;
             feedbackMsg.style.color = '#1d4ed8';
         } else {
-            widget.style.borderColor = 'var(--orange)';
             widget.style.backgroundColor = '#fff7ed';
-            feedbackMsg.innerHTML = '<strong>Precio Alto ⚠️</strong> El precio es un poco más alto que el promedio estatal. Esto podría ralentizar la venta. Considera ajustarlo.';
+            widget.style.borderLeftColor = 'var(--orange)';
+            feedbackMsg.innerHTML = `<strong>Precio Elevado ⚠️</strong> Tu precio es un ${diff.toFixed(1)}% mayor al promedio real (${lastSuggestedPrice.toLocaleString()} COP). Considera ajustarlo para atraer más compradores.`;
             feedbackMsg.style.color = '#c2410c';
         }
-        
-        updateCommission(IP);
+
+        // Actualizar comisión también
+        updateCommission(userPrice);
     };
-    
-    // Listeners para re-analizar dinámicamente
-    document.getElementById('price')?.addEventListener('input', calculatePricing);
-    document.getElementById('brand')?.addEventListener('change', calculatePricing);
-    document.getElementById('year')?.addEventListener('change', calculatePricing);
-    document.getElementById('engine')?.addEventListener('input', calculatePricing);
+
+    const updateCommission = (price) => {
+        const commWidget = document.getElementById('commissionWidget');
+        const commValueLabel = document.getElementById('commissionValue');
+        const savingsMsg = document.getElementById('savingsMessage');
+        
+        if(!commWidget) return;
+        if(!price || price < 500000) { commWidget.style.display = 'none'; return; }
+        
+        commWidget.style.display = 'block';
+        let fee = 150000;
+        if(price >= 20000000) fee = 500000;
+        else if(price >= 10000000) fee = 250000;
+        
+        const traditional3Percent = price * 0.03;
+        const savings = traditional3Percent - fee;
+        
+        commValueLabel.innerText = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(fee);
+        if(savings > 0) {
+            savingsMsg.style.display = 'block';
+            savingsMsg.innerText = `📉 Ahorras ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(savings)} frente al 3% tradicional`;
+        } else {
+            savingsMsg.style.display = 'none';
+        }
+    };
+
+    // Listeners con Debounce para no saturar la API
+    document.getElementById('brand')?.addEventListener('change', fetchRealSuggestion);
+    document.getElementById('model')?.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fetchRealSuggestion, 800);
+    });
+    document.getElementById('price')?.addEventListener('input', updatePricingUI);
 });
