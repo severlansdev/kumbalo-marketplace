@@ -32,7 +32,7 @@ except Exception as e:
     app.state.runt_error = str(e)
 
 try:
-    from backend.routers import auth, motos, payments, tramites, debug
+    from backend.routers import auth, motos, payments, tramites, debug, analytics
     from backend.main import sync_db_schema
     from backend.database import SessionLocal, engine
     from backend import models
@@ -49,6 +49,7 @@ try:
     app.include_router(payments.router, prefix="/api")
     app.include_router(tramites.router, prefix="/api")
     app.include_router(debug.router, prefix="/api")
+    app.include_router(analytics.router, prefix="/api")
 except Exception as e:
     import traceback
     app.state.core_error = f"{str(e)} | Trace: {traceback.format_exc()}"

@@ -43,6 +43,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (stats.user.id) {
                 setupWebSocket(stats.user.id);
             }
+            
+            // Cargar Alertas Predictivas e Insights del Agente de Datos (/data_ml)
+            loadPredictiveAlerts();
+            loadMarketPulse();
 
             // Admin-only AI Center Visibility
             if (stats.user.rol === 'admin') {
@@ -571,3 +575,97 @@ window.actualizarPerfil = async function() {
         alert("Error al actualizar perfil: " + e.message);
     }
 };
+// Lógica de Alertas Predictivas y Pulso de Mercado (Agente de Datos /data_ml)
+async function loadPredictiveAlerts() {
+    const container = document.getElementById('ai-market-alerts');
+    if (!container) return;
+
+    try {
+        const alerts = await window.api.request('/analytics/predictive-alerts', {
+            method: 'GET',
+            headers: window.api.getHeaders()
+        });
+
+        if (alerts.length > 0) {
+            container.innerHTML = '';
+            alerts.forEach(alert => {
+                const alertEl = document.createElement('div');
+                alertEl.style.cssText = `
+                    background: ${alert.type === 'opportunity' ? 'linear-gradient(135deg, rgba(255,40,0,0.1), rgba(0,0,0,0.4))' : 'rgba(255,255,255,0.05)'};
+                    border: 1px solid ${alert.type === 'opportunity' ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
+                    padding: var(--space-6);
+                    border-radius: var(--radius-2xl);
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-6);
+                    position: relative;
+                    overflow: hidden;
+                    box-shadow: ${alert.type === 'opportunity' ? '0 10px 30px rgba(255,40,0,0.15)' : 'none'};
+                `;
+
+                alertEl.innerHTML = `
+                    <div style="background: ${alert.type === 'opportunity' ? 'var(--primary)' : 'var(--bg-secondary)'}; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        ${alert.type === 'opportunity' ? '📈' : '💡'}
+                    </div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0; color: #fff; font-size: 1.1rem;">${alert.title}</h4>
+                        <p style="margin: 5px 0 0; color: rgba(255,255,255,0.7); font-size: 0.9rem;">${alert.message}</p>
+                        <div style="margin-top: 10px; display:flex; gap: 15px; align-items:center;">
+                            <span class="badge" style="font-size: 0.65rem; background: rgba(255,255,255,0.1); color: #fff;">🤖 AGENTE: ${alert.agent.toUpperCase()}</span>
+                            <a href="${alert.cta === 'Vender ahora' ? 'subir-moto.html' : '#'}" style="color: var(--primary); font-weight: bold; font-size: 0.85rem; text-decoration: none;">${alert.cta} →</a>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(alertEl);
+                
+                // Animación GSAP para llamar la atención
+                if (alert.priority === 'High') {
+                    gsap.fromTo(alertEl, { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' });
+                }
+            });
+            container.style.display = 'block';
+        }
+    } catch (e) {
+        console.warn("Could not load predictive alerts:", e);
+    }
+}
+
+async function loadMarketPulse() {
+    const ticker = document.getElementById('marketTicker');
+    const content = document.getElementById('tickerContent');
+    if (!ticker || !content) return;
+
+    try {
+        const pulse = await window.api.request('/analytics/market-pulse', {
+            method: 'GET'
+        });
+
+        if (pulse.length > 0) {
+            content.innerHTML = '';
+            // Duplicamos el contenido para el efecto de scroll infinito
+            const items = pulse.map(item => `
+                <span style="display:inline-flex; align-items:center; margin-right: 40px; font-size: 0.85rem;">
+                    <b style="color:#fff; margin-right:8px;">${item.brand}:</b> 
+                    <span style="color:${item.status === 'up' ? 'var(--success)' : 'var(--error)'}; font-weight:bold;">
+                        ${item.status === 'up' ? '▲' : '▼'} ${item.change}
+                    </span>
+                    <small style="color:rgba(255,255,255,0.4); margin-left:8px;">(Demanda: ${item.demand})</small>
+                </span>
+            `).join('');
+            
+            content.innerHTML = items + items; // Dual for loop
+            ticker.style.display = 'block';
+            
+            // GSAP Ticker Animation
+            const contentWidth = content.scrollWidth / 2;
+            gsap.to(content, {
+                x: -contentWidth,
+                duration: 25,
+                ease: "none",
+                repeat: -1
+            });
+        }
+    } catch (e) {
+        console.warn("Could not load market pulse:", e);
+    }
+}
