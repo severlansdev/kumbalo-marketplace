@@ -25,6 +25,13 @@
     <meta name="twitter:description" content="El mejor marketplace para la venta de motos premium. Verificación RUNT y pagos seguros.">
     <meta name="twitter:image" content="assets/og-image.png">
 
+    <!-- Microsoft & Edge Specific -->
+    <meta name="msapplication-TileImage" content="assets/favicon.png">
+    <meta name="msapplication-TileColor" content="#0a0a0a">
+    <meta name="msapplication-navbutton-color" content="#ff2800">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+
     <!-- Favicon & Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
@@ -63,7 +70,36 @@
             "contactType": "sales",
             "areaServed": "CO",
             "availableLanguage": "Spanish"
+        },
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://kumbalo.com/index.html?q={search_term_string}",
+            "query-input": "required name=search_term_string"
         }
+    }
+    </script>
+
+    <!-- Breadcrumbs for SEO Navigation -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [{
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Inicio",
+            "item": "https://kumbalo.com/"
+        },{
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Catálogo de Motos",
+            "item": "https://kumbalo.com/#catalogo"
+        },{
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Venta de Motos",
+            "item": "https://kumbalo.com/venta-de-motos-en-colombia.html"
+        }]
     }
     </script>
 
@@ -612,10 +648,11 @@
                 <div class="footer-col">
                     <h4>Enlaces Rápidos</h4>
                     <ul>
-                        <li><a href="#inicio">Inicio</a></li>
-                        <li><a href="#catalogo">Catálogo</a></li>
-                        <li><a href="#servicios">Servicios</a></li>
-                        <li><a href="#contacto">Contacto</a></li>
+                        <li><a href="index.html#inicio">Inicio</a></li>
+                        <li><a href="index.html#catalogo">Catálogo</a></li>
+                        <li><a href="index.html#servicios">Servicios</a></li>
+                        <li><a href="venta-de-motos-en-colombia.html" style="color: var(--primary); font-weight: bold;">Venta de Motos</a></li>
+                        <li><a href="index.html#contacto">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
