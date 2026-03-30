@@ -176,6 +176,7 @@ body {
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 body {
@@ -185,6 +186,39 @@ body {
     background: var(--light);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    width: 100%;
+}
+
+/* WhatsApp Floating Button Upgrade */
+#whatsapp-float {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    z-index: 9998;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #25D366;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#whatsapp-float:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(37, 211, 102, 0.6);
+}
+
+@media (max-width: 480px) {
+    #whatsapp-float {
+        bottom: 80px; /* Adjust for mobile tab bar */
+        right: 15px;
+        width: 50px;
+        height: 50px;
+    }
 }
 
 h1,
