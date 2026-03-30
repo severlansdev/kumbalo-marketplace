@@ -635,65 +635,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Floating WhatsApp Button
-    const fabButton = document.createElement('a');
-    fabButton.href = 'https://wa.me/3001234567?text=Hola,%20necesito%20ayuda%20como%20usuario%20de%20Kumbalo.';
-    fabButton.target = '_blank';
-    fabButton.title = 'Soporte WhatsApp';
-    fabButton.className = 'fab-whatsapp';
-    fabButton.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21" />
-            <path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1" />
-        </svg>
-    `;
-    document.body.appendChild(fabButton);
+    // El botón de WhatsApp se maneja directamente en los archivos HTML para mejor SEO y accesibilidad.
+    // Los estilos se encuentran en css/styles.css como #whatsapp-float.
 
-    const fabStyle = document.createElement('style');
-    fabStyle.textContent = `
-        .fab-whatsapp {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #25D366;
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-        .fab-whatsapp:hover {
-            transform: scale(1.1);
-            background: #1ebc58;
-            box-shadow: 0 6px 14px rgba(37, 211, 102, 0.4);
-            color: white;
-        }
-        /* Responsiveness: Overlap prevention */
-        @media (max-width: 768px) {
-            .fab-whatsapp {
-                bottom: 20px;
-                right: 20px;
-                width: 50px;
-                height: 50px;
-            }
-        }
-    `;
-    document.head.appendChild(fabStyle);
+    // Los estilos del botón flotante se manejan en CSS
     
-    // Animate FAB entrance
-    gsap.from('.fab-whatsapp', {
-        scale: 0,
-        opacity: 0,
-        rotation: 360,
-        duration: 1,
-        delay: 2,
-        ease: 'elastic.out(1, 0.5)'
-    });
+    // La animación de entrada del botón se realiza vía CSS
 
     // Listing cards interaction
     document.querySelectorAll('.listing-card').forEach(card => {
