@@ -2651,7 +2651,31 @@ img {
 }
 
 .auth-side {
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary)) !important;
+    background: linear-gradient(135deg, rgba(255, 40, 0, 0.7), rgba(0, 0, 0, 0.8)), url('../assets/interactivos/1.jpeg') center/cover no-repeat !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-side::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+}
+
+/* Utilería de Ambientación para otras páginas */
+.ambient-hero {
+    background: linear-gradient(135deg, rgba(10, 10, 10, 0.85), rgba(20, 20, 20, 0.85)), url('../assets/interactivos/2.jpeg') center/cover no-repeat !important;
+}
+
+.ambient-footer-cta {
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.9)), url('../assets/interactivos/3.jpeg') center/cover no-repeat !important;
 }
 
 /* ============================================
