@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const captchaData = await window.api.runt.getCaptcha();
                 currentCaptchaToken = captchaData.id;
-                runtCaptchaImg.src = `data:image/png;base64,${captchaData.imagen}`;
+                runtCaptchaImg.src = captchaData.imagen;
                 captchaInput.value = '';
                 captchaModal.style.display = 'flex';
                 document.getElementById('btnConsultarRunt').innerHTML = originalBtnText;
