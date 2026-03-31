@@ -103,6 +103,7 @@ class VehicleIntelligenceAgent:
         # Si tenemos captcha, intentamos consulta real al RUNT
         if captcha_token and captcha_value:
             real_data = await self.runt.get_vehicle_technical_data(placa, vin or "", doc_type, doc_num, captcha_token, captcha_value)
+            
             if "error" not in real_data:
                 return VehicleADN(
                     placa=placa,
@@ -121,17 +122,20 @@ class VehicleIntelligenceAgent:
                     fuente=real_data["fuente"]
                 )
             else:
-                # Si el RUNT falla pero tenemos VIN, intentamos derivar datos
-                if vin:
-                    runt_data = self.runt.get_mock_verified_data(placa, vin)
-                    dna = self._generate_consistent_mock(placa)
-                    dna.marca = runt_data.get("marca", dna.marca)
-                    dna.modelo = runt_data.get("modelo", dna.modelo)
-                    dna.es_verificado = True
-                    dna.fuente = runt_data.get("fuente", "RUNT (VERIFICADO POR VIN)")
-                    return dna
+                # Error Real: Si el RUNT responde con error, NO caemos en Mock
+                # Lanzamos una excepción para que el router la maneje y el usuario vea el error
+                raise Exception(f"RUNT Falló: {real_data.get('detail', 'Datos no encontrados o captcha inválido')}")
         
-        # Fallback a 'IA' si todo lo real falla
+        # Fallback a 'IA' solo si NO hay una intención de verificación real activa (sin captcha)
+        if vin:
+            runt_data = self.runt.get_mock_verified_data(placa, vin)
+            dna = self._generate_consistent_mock(placa)
+            dna.marca = runt_data.get("marca", dna.marca)
+            dna.modelo = runt_data.get("modelo", dna.modelo)
+            dna.es_verificado = True
+            dna.fuente = runt_data.get("fuente", "RUNT (VERIFICADO POR VIN)")
+            return dna
+
         return self._generate_consistent_mock(placa)
 
     def _generate_consistent_mock(self, placa: str) -> VehicleADN:
