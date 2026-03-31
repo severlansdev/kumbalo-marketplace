@@ -17,6 +17,7 @@ class RuntAgent:
         self.headers = {
             "Content-Type": "application/json",
             "Accept": "application/json, text/plain, */*",
+            "x-funcionalidad": "SHELL",
             "Origin": "https://portalpublico.runt.gov.co",
             "Referer": "https://portalpublico.runt.gov.co/",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
@@ -30,47 +31,57 @@ class RuntAgent:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(f"{self.BASE_URL}/captcha/libre-captcha/generar", headers=self.headers)
                 if response.status_code == 200:
-                    return response.json() # Contiene el ID del captcha y la imagen en Base64
+                    data = response.json()
+                    return {
+                        "id": data.get("id"),
+                        "imagen": f"data:image/png;base64,{data.get('imagen')}"
+                    }
                 return {"error": "CAPTCHA_FAILED"}
         except Exception as e:
             return {"error": str(e)}
 
-    async def get_vehicle_technical_data(self, plate: str, vin: str, doc_type: str = None, doc_num: str = None, captcha_token: str = None, captcha_value: str = None) -> Dict[str, Any]:
+    async def get_vehicle_technical_data(self, plate: str, vin: str = None, doc_type: str = "C", doc_num: str = None, captcha_token: str = None, captcha_value: str = None) -> Dict[str, Any]:
         """
-        Realiza la consulta técnica al RUNT usando Placa + (VIN o Documento).
+        Realiza la consulta técnica al RUNT usando el endpoint /auth descubierto en la inspección SHELL.
         """
-        tipo_consulta = "VIN" if vin else "DOCUMENTO"
-        
         payload = {
-            "tipoConsulta": tipo_consulta,
+            "procedencia": "NACIONAL",
+            "tipoConsulta": "1" if not vin else "VIN",
             "placa": plate.upper().strip(),
-            "captcha": {
-                "id": captcha_token,
-                "valor": captcha_value
+            "tipoDocumento": doc_type or "C",
+            "documento": doc_num.strip() if doc_num else "",
+            "vin": vin.upper().strip() if vin else None,
+            "soat": None,
+            "aseguradora": "",
+            "rtm": None,
+            "reCaptcha": None,
+            "captcha": captcha_value.upper().strip() if captcha_value else "",
+            "valueCaptchaEncripted": "",
+            "idLibreCaptcha": captcha_token,
+            "verBannerSoat": True,
+            "configuracion": {
+                "tiempoInactividad": "900",
+                "tiempoCuentaRegresiva": "10"
             }
         }
         
-        if vin:
-            payload["vin"] = vin.upper().strip()
-        elif doc_num:
-            payload["tipoDocumento"] = doc_type or "C"
-            payload["numeroDocumento"] = doc_num.strip()
-        
-        logger.info(f"Iniciando consulta REAL RUNT ({tipo_consulta}) para placa {plate}")
+        logger.info(f"RUNT SHELL: Iniciando consulta real para placa {plate}")
         
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
-                response = await client.post(f"{self.BASE_URL}/vehiculo/consultar", json=payload, headers=self.headers)
+            async with httpx.AsyncClient(timeout=25.0) as client:
+                # El endpoint real es /auth para el módulo SHELL
+                response = await client.post(f"{self.BASE_URL}/auth", json=payload, headers=self.headers)
                 
                 if response.status_code == 200:
                     data = response.json()
-                    if "error" in data or not data.get("vehiculo"):
-                        logger.warning(f"RUNT devolvió respuesta exitosa pero con error interno: {data.get('mensaje')}")
-                        return {"error": "RUNT_DATA_EMPTY", "detail": data.get("mensaje")}
-                    return self._parse_technical_data(data)
+                    if data.get("vehiculo") or data.get("resumentTecnico"):
+                        return self._parse_technical_data(data)
+                    
+                    mensaje = data.get("mensaje") or data.get("error", "Error no especificado en RUNT")
+                    return {"error": "RUNT_DATA_EMPTY", "detail": mensaje}
                 
                 logger.error(f"RUNT API respondió con status {response.status_code}: {response.text}")
-                return {"error": f"RUNT_API_{response.status_code}", "detail": response.text}
+                return {"error": f"RUNT_API_{response.status_code}", "detail": "El servicio del RUNT no respondió correctamente (404/SHELL)."}
         except Exception as e:
             logger.error(f"Error de conexión en RUNT Agent: {str(e)}")
             return {"error": "CONNECTION_FAILED", "detail": str(e)}
