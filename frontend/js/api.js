@@ -153,9 +153,11 @@ const api = {
                 method: 'GET'
             });
         },
-        check: async (placa, vin = null, captchaToken = null, captchaValue = null) => {
+        check: async (placa, vin = null, docType = null, docNum = null, captchaToken = null, captchaValue = null) => {
             let url = `/v1/runt/consulta/${placa}?v=1`;
             if (vin) url += `&vin=${encodeURIComponent(vin)}`;
+            if (docType) url += `&doc_type=${encodeURIComponent(docType)}`;
+            if (docNum) url += `&doc_num=${encodeURIComponent(docNum)}`;
             if (captchaToken) url += `&captcha_token=${encodeURIComponent(captchaToken)}`;
             if (captchaValue) url += `&captcha_value=${encodeURIComponent(captchaValue)}`;
             return await api.request(url, {

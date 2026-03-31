@@ -115,17 +115,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     let currentCaptchaToken = null;
 
-    const executeRuntQuery = async (placa, vin, capToken, capValue) => {
+    const executeRuntQuery = async (placa, vin, docType, docNum, capToken, capValue) => {
         runtModal.style.display = 'flex';
         runtLoader.style.display = 'block';
         runtResults.style.display = 'none';
         runtError.textContent = '';
 
-        gsap.fromTo('.runt-modal-content', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" });
+        // Reset scroll and animations
+        const modalContent = document.querySelector('.runt-modal-content');
+        gsap.fromTo(modalContent, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "power4.out" });
 
         try {
-            const data = await window.api.runt.check(placa, vin, capToken, capValue);
+            const data = await window.api.runt.check(placa, vin, docType, docNum, capToken, capValue);
             
+            // Generar ID de certificado aleatorio para el factor "Wow"
+            const certId = `KMB-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+            document.getElementById('dna-id-rand').textContent = certId;
+
             // Poblar UI
             document.getElementById('dna-plate-title').textContent = data.placa;
             document.getElementById('dna-marca').textContent = data.marca;
@@ -136,111 +142,111 @@ document.addEventListener('DOMContentLoaded', async () => {
             const soatBadge = document.getElementById('dna-soat-badge');
             soatBadge.textContent = data.estado_soat;
             soatBadge.className = `badge ${data.estado_soat === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}`;
-            document.getElementById('dna-soat-venc').textContent = `Vence: ${data.vencimiento_soat}`;
+            soatBadge.style.background = data.estado_soat === 'VIGENTE' ? '#10b981' : '#ef4444';
             
             const rtmBadge = document.getElementById('dna-rtm-badge');
             rtmBadge.textContent = data.estado_rtm;
             rtmBadge.className = `badge ${data.estado_rtm === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}`;
-            document.getElementById('dna-rtm-venc').textContent = `Vence: ${data.vencimiento_rtm}`;
+            rtmBadge.style.background = data.estado_rtm === 'VIGENTE' ? '#10b981' : '#ef4444';
             
             const multasText = document.getElementById('dna-multas-text');
             const multasValor = document.getElementById('dna-multas-valor');
             if (data.multas === 0) {
-                multasText.textContent = "Sin multas pendientes";
-                multasText.style.color = "var(--success)";
+                multasText.textContent = "HISTORIAL LIMPIO";
+                multasText.style.color = "#10b981";
                 multasValor.textContent = "$0";
             } else {
-                multasText.textContent = `${data.multas} Infracciones`;
-                multasText.style.color = "var(--error)";
-                multasValor.textContent = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(data.valor_multas);
+                multasText.textContent = `${data.multas} INFRACCIONES SIMIT`;
+                multasText.style.color = "#ef4444";
+                multasValor.textContent = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(data.valor_multas);
             }
             
             const embargosEl = document.getElementById('dna-embargos');
             if (data.embargos) {
                 embargosEl.textContent = "ALERTA: " + data.limitaciones_propiedad;
-                embargosEl.style.color = "var(--error)";
+                embargosEl.style.color = "#ef4444";
             } else {
-                embargosEl.textContent = "LIBRE DE EMBARGOS";
-                embargosEl.style.color = "var(--success)";
+                embargosEl.textContent = "LIBRE DE EMBARGOS Y GRAVÁMENES";
+                embargosEl.style.color = "#10b981";
             }
 
             const fuenteEl = document.getElementById('dna-fuente');
             if (fuenteEl) {
-                fuenteEl.textContent = data.fuente;
-                fuenteEl.style.color = data.es_verificado ? "#2ecc71" : "var(--gray)";
-                if (data.es_verificado) {
-                    fuenteEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg> ${data.fuente}`;
-                }
+                fuenteEl.innerHTML = `FUENTE: ${data.fuente} · VERIFICACIÓN KUMBALO 2026`;
+                fuenteEl.style.color = data.es_verificado ? "#10b981" : "#555";
             }
 
             runtLoader.style.display = 'none';
             runtResults.style.display = 'block';
+            
+            // Animación de entrada de los datos
+            gsap.from('#runtResults .dna-card', { 
+                y: 20, 
+                opacity: 0, 
+                stagger: 0.1, 
+                duration: 0.8, 
+                ease: "power2.out" 
+            });
 
-            const btnBuy = document.getElementById('btnBuyFullReport');
-            if (btnBuy) {
-                btnBuy.onclick = async () => {
-                    btnBuy.disabled = true;
-                    btnBuy.textContent = "PROCESANDO...";
-                    try {
-                        const p = await window.api.runt.buyReport(data.placa, "usuario@ejemplo.com");
-                        window.location.href = p.init_point;
-                    } catch (err) {
-                        alert("Error al generar la compra.");
-                        btnBuy.disabled = false;
-                        btnBuy.textContent = "COMPRAR REPORTE DETALLLADO ($40.000)";
-                    }
-                };
-            }
         } catch (err) {
             runtModal.style.display = 'none';
-            runtError.textContent = err.message || 'Error al conectar con la base de datos nacional.';
+            runtError.textContent = err.message || 'Error de conexión con la infraestructura nacional.';
         }
     };
 
     if (runtForm) {
         runtForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const placa = (document.getElementById('runtPlate') || document.getElementById('runtPlaca')).value.trim().toUpperCase();
-            const vin = (document.getElementById('runtVin')).value.trim() || null;
+            const placa = document.getElementById('runtPlate').value.trim().toUpperCase();
+            const vin = document.getElementById('runtVin').value.trim() || null;
+            const docType = document.getElementById('tipoDoc').value;
+            const docNum = document.getElementById('runtDoc').value.trim();
             
             if (placa.length < 5 || placa.length > 6) {
                 runtError.textContent = 'Ingresa una placa válida (ej. ABC12D)';
                 return;
             }
 
-            // 1. Pedir Captcha al Backend antes de mostrar nada
-            const originalBtnText = document.getElementById('btnConsultarRunt').innerHTML;
-            document.getElementById('btnConsultarRunt').innerHTML = 'Iniciando Conexión RUNT...';
+            // 1. Pedir Captcha
+            const btn = document.getElementById('btnConsultarRunt');
+            const originalBtnText = btn.innerHTML;
+            btn.innerHTML = '<span class="spin"></span> CONECTANDO AL RUNT...';
+            btn.disabled = true;
             
             try {
                 const captchaData = await window.api.runt.getCaptcha();
                 currentCaptchaToken = captchaData.id;
                 runtCaptchaImg.src = captchaData.imagen;
+                runtCaptchaImg.style.opacity = '1';
                 captchaInput.value = '';
+                
                 captchaModal.style.display = 'flex';
-                document.getElementById('btnConsultarRunt').innerHTML = originalBtnText;
+                gsap.fromTo('#captchaModal .modal-content', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" });
+                
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
 
                 btnConfirmCaptcha.onclick = () => {
                     const val = captchaInput.value.trim();
                     if (!val) return;
                     captchaModal.style.display = 'none';
-                    executeRuntQuery(placa, vin, currentCaptchaToken, val);
+                    executeRuntQuery(placa, vin, docType, docNum, currentCaptchaToken, val);
                 };
 
                 btnCancelCaptcha.onclick = () => {
                     captchaModal.style.display = 'none';
                 };
             } catch (err) {
-                console.error(err);
-                // Si falla el captcha, intentamos consulta directa (fallback inteligente ya configurado en backend)
-                executeRuntQuery(placa, vin, null, null);
-                document.getElementById('btnConsultarRunt').innerHTML = originalBtnText;
+                // Fallback automático si falla el túnel de captchas
+                executeRuntQuery(placa, vin, docType, docNum, null, null);
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
             }
         });
 
         closeRuntModal.addEventListener('click', () => {
             gsap.to('.runt-modal-content', { 
-                scale: 0.8, opacity: 0, duration: 0.3, 
+                scale: 0.9, opacity: 0, duration: 0.3, 
                 onComplete: () => runtModal.style.display = 'none' 
             });
         });

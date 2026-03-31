@@ -35,31 +35,45 @@ class RuntAgent:
         except Exception as e:
             return {"error": str(e)}
 
-    async def get_vehicle_technical_data(self, plate: str, vin: str, captcha_token: str, captcha_value: str) -> Dict[str, Any]:
+    async def get_vehicle_technical_data(self, plate: str, vin: str, doc_type: str = None, doc_num: str = None, captcha_token: str = None, captcha_value: str = None) -> Dict[str, Any]:
         """
-        Realiza la consulta técnica al RUNT usando Placa y VIN.
+        Realiza la consulta técnica al RUNT usando Placa + (VIN o Documento).
         """
+        tipo_consulta = "VIN" if vin else "DOCUMENTO"
+        
         payload = {
-            "tipoConsulta": "VIN",
-            "placa": plate.upper(),
-            "vin": vin.upper(),
+            "tipoConsulta": tipo_consulta,
+            "placa": plate.upper().strip(),
             "captcha": {
                 "id": captcha_token,
                 "valor": captcha_value
             }
         }
         
+        if vin:
+            payload["vin"] = vin.upper().strip()
+        elif doc_num:
+            payload["tipoDocumento"] = doc_type or "C"
+            payload["numeroDocumento"] = doc_num.strip()
+        
+        logger.info(f"Iniciando consulta REAL RUNT ({tipo_consulta}) para placa {plate}")
+        
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
-                # Nota: En un entorno de producción, aquí se manejaría la sesión del RUNT
                 response = await client.post(f"{self.BASE_URL}/vehiculo/consultar", json=payload, headers=self.headers)
                 
                 if response.status_code == 200:
-                    return self._parse_technical_data(response.json())
+                    data = response.json()
+                    if "error" in data or not data.get("vehiculo"):
+                        logger.warning(f"RUNT devolvió respuesta exitosa pero con error interno: {data.get('mensaje')}")
+                        return {"error": "RUNT_DATA_EMPTY", "detail": data.get("mensaje")}
+                    return self._parse_technical_data(data)
+                
+                logger.error(f"RUNT API respondió con status {response.status_code}: {response.text}")
                 return {"error": f"RUNT_API_{response.status_code}", "detail": response.text}
         except Exception as e:
-            logger.error(f"Error en RUNT Agent: {str(e)}")
-            return {"error": "CONNECTION_FAILED"}
+            logger.error(f"Error de conexión en RUNT Agent: {str(e)}")
+            return {"error": "CONNECTION_FAILED", "detail": str(e)}
 
     def _parse_technical_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """

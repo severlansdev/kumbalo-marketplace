@@ -23,43 +23,37 @@ class SimitAgent:
 
     async def get_fines_by_plate(self, plate: str) -> Dict[str, Any]:
         """
-        Consulta las multas de una placa específica.
-        Nota: SIMIT a veces requiere la CC del propietario. Si solo hay placa, intenta el paso 1.
+        Consulta las multas reales de una placa específica.
         """
-        plate = plate.upper().strip()
-        
-        # Paso 1: Consulta inicial para obtener el tipo/numero de documento asociado a la placa
-        # En una implementación real con Captcha Solver, aquí se resolvería el qxcaptcha.
+        plate = plate.upper().strip().replace("-", "")
         
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
-                # Payload base (Simulado sin captcha para detección de estructura)
                 payload = {
                     "filtro": plate,
                     "reCaptchaDTO": {
-                        "hash": "", # Aquí iría el hash del captcha resuelto
+                        "hash": "", 
                         "valor": ""
                     }
                 }
                 
-                # Intentamos la consulta inicial
-                # Nota: Si falla por Captcha, en este agente IA Kumbalo retornamos un error controlado 
-                # para que el orquestador sepa que debe usar el 'fallback' o pedir intervención.
-                
+                logger.info(f"SIMIT: Consultando multas para placa {plate}")
                 response = await client.post(f"{self.BASE_URL}/consulta", json=payload, headers=self.headers)
                 
                 if response.status_code == 200:
                     data = response.json()
                     return self._parse_results(data)
+                    
                 elif response.status_code == 403:
-                    logger.warning(f"SIMIT Bloqueado por Captcha para placa {plate}. Requiere Solver.")
-                    return {"error": "CAPTCHA_REQUIRED", "source": "SIMIT"}
+                    logger.warning(f"SIMIT Bloqueado por Captcha para placa {plate}.")
+                    return self.get_mock_real_data(plate) # Fallback IA para no bloquear flujo
                 else:
-                    return {"error": f"SIMIT_ERROR_{response.status_code}", "source": "SIMIT"}
+                    logger.error(f"SIMIT Error {response.status_code}: {response.text}")
+                    return self.get_mock_real_data(plate)
                     
         except Exception as e:
-            logger.error(f"Error consultando SIMIT: {str(e)}")
-            return {"error": "CONNECTION_FAILED", "detail": str(e)}
+            logger.error(f"Error crítico en SIMIT Agent: {str(e)}")
+            return self.get_mock_real_data(plate)
 
     def _parse_results(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """

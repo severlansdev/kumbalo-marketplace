@@ -36,7 +36,9 @@ async def get_runt_captcha():
 @router.get("/consulta/{placa}", response_model=RuntResponse)
 async def consultar_placa(
     placa: str = Path(..., description="Placa del vehículo Ej: ABC12D", min_length=5, max_length=6),
-    vin: Optional[str] = Query(None, description="VIN (Serial de chasis) para consulta verificada"),
+    vin: Optional[str] = Query(None, description="VIN (Serial de chasis)"),
+    doc_type: Optional[str] = Query(None, description="Tipo de documento (C, E, N, P)"),
+    doc_num: Optional[str] = Query(None, description="Número de documento"),
     captcha_token: Optional[str] = Query(None, description="ID del captcha"),
     captcha_value: Optional[str] = Query(None, description="Valor resuelto por el usuario")
 ):
@@ -45,7 +47,7 @@ async def consultar_placa(
     Soporta resolución de Captcha HITL para datos 100% reales.
     """
     try:
-        dna = await agent.get_vehicle_dna(placa, vin, captcha_token, captcha_value)
+        dna = await agent.get_vehicle_dna(placa, vin, doc_type, doc_num, captcha_token, captcha_value)
         return dna
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en la consulta vehicular: {str(e)}")
