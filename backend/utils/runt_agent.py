@@ -56,7 +56,7 @@ class RuntAgent:
         """
         Consulta real RUNT vía Microservicio /auth (SHELL Tunnel).
         """
-        # Payload exacto auditado en Sinergia
+        # Payload estructural completo para estabilizar el microservicio AUTH
         payload = {
             "procedencia": "NACIONAL",
             "tipoConsulta": "1" if not vin else "VIN",
@@ -64,9 +64,18 @@ class RuntAgent:
             "tipoDocumento": doc_type or "C",
             "documento": doc_num.strip() if doc_num else "",
             "vin": vin.upper().strip() if vin else None,
+            "soat": None,
+            "aseguradora": "",
+            "rtm": None,
+            "reCaptcha": None,
             "captcha": captcha_value.upper().strip() if captcha_value else "",
+            "valueCaptchaEncripted": "", # Campo de arquitectura mandatorio para evitar 500
             "idLibreCaptcha": captcha_token,
-            "verBannerSoat": True
+            "verBannerSoat": True,
+            "configuracion": {
+                "tiempoInactividad": "900",
+                "tiempoCuentaRegresiva": "10"
+            }
         }
         
         logger.info(f"SINERGIA: Consultando RUNT Auth para {plate}")
