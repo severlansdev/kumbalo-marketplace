@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('btnConsultarRunt').innerHTML = originalBtnText;
 
                 btnConfirmCaptcha.onclick = () => {
-                    const val = captchaInput.value.trim().toUpperCase();
+                    const val = captchaInput.value.trim();
                     if (!val) return;
                     captchaModal.style.display = 'none';
                     executeRuntQuery(placa, vin, currentCaptchaToken, val);
