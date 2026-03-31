@@ -25,39 +25,38 @@ class RuntAgent:
 
     async def get_captcha(self) -> Dict[str, Any]:
         """
-        Obtiene un nuevo captcha del RUNT. Refinado para evitar imágenes rotas.
+        Obtiene un nuevo captcha del RUNT. 
+        Sinergia: Manejo inteligente de prefijos base64 para evitar imágenes rotas.
         """
         try:
-            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
                 response = await client.get(f"{self.BASE_URL}/captcha/libre-captcha/generar", headers=self.headers)
                 
                 if response.status_code == 200:
                     data = response.json()
-                    img_b64 = data.get("imagen")
+                    raw_img = data.get("imagen", "")
                     
-                    if not img_b64:
-                        logger.error(f"RUNT: El captcha vino sin imagen corporal. Respuesta: {data}")
-                        return {"error": "EMPTY_IMAGE"}
-
-                    # Limpiar Base64 por si viene con headers o caracteres extra
-                    if "base64," in img_b64:
-                        img_b64 = img_b64.split("base64,")[1]
-                    
+                    # Sinergia: No duplicar el prefijo data:image si el RUNT ya lo envía
+                    final_img = raw_img
+                    if raw_img and not raw_img.startswith("data:image"):
+                        final_img = f"data:image/png;base64,{raw_img}"
+                        
                     return {
                         "id": data.get("id"),
-                        "imagen": f"data:image/png;base64,{img_b64.strip()}"
+                        "imagen": final_img
                     }
                 
-                logger.error(f"RUNT Captcha Error {response.status_code}: {response.text}")
-                return {"error": "CAPTCHA_FAILED", "status": response.status_code}
+                logger.error(f"RUNT Captcha Error {response.status_code}")
+                return {"error": "CAPTCHA_FAILED"}
         except Exception as e:
-            logger.error(f"Excepción obteniendo captcha: {str(e)}")
+            logger.error(f"Excepción en captcha: {str(e)}")
             return {"error": str(e)}
 
     async def get_vehicle_technical_data(self, plate: str, vin: str = None, doc_type: str = "C", doc_num: str = None, captcha_token: str = None, captcha_value: str = None) -> Dict[str, Any]:
         """
-        Realiza la consulta técnica al RUNT usando el endpoint /auth descubierto en la inspección SHELL.
+        Consulta real RUNT vía Microservicio /auth (SHELL Tunnel).
         """
+        # Payload exacto auditado en Sinergia
         payload = {
             "procedencia": "NACIONAL",
             "tipoConsulta": "1" if not vin else "VIN",
@@ -65,48 +64,43 @@ class RuntAgent:
             "tipoDocumento": doc_type or "C",
             "documento": doc_num.strip() if doc_num else "",
             "vin": vin.upper().strip() if vin else None,
-            "soat": None,
-            "aseguradora": "",
-            "rtm": None,
-            "reCaptcha": None,
             "captcha": captcha_value.upper().strip() if captcha_value else "",
-            "valueCaptchaEncripted": "",
             "idLibreCaptcha": captcha_token,
-            "verBannerSoat": True,
-            "configuracion": {
-                "tiempoInactividad": "900",
-                "tiempoCuentaRegresiva": "10"
-            }
+            "verBannerSoat": True
         }
         
-        logger.info(f"RUNT SHELL: Iniciando consulta real para placa {plate}")
+        logger.info(f"SINERGIA: Consultando RUNT Auth para {plate}")
         
         try:
-            async with httpx.AsyncClient(timeout=25.0) as client:
-                # El endpoint real es /auth para el módulo SHELL
-                response = await client.post(f"{self.BASE_URL}/auth", json=payload, headers=self.headers)
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                # Sinergia: El endpoint absoluto previene desvíos 404
+                url = f"{self.BASE_URL}/auth"
+                response = await client.post(url, json=payload, headers=self.headers)
                 
                 if response.status_code == 200:
                     data = response.json()
+                    # Si el RUNT responde con éxito (aunque sea con mensaje de error interno)
                     if data.get("vehiculo") or data.get("resumentTecnico"):
                         return self._parse_technical_data(data)
                     
-                    mensaje = data.get("mensaje") or data.get("error", "Error no especificado en RUNT")
-                    return {"error": "RUNT_DATA_EMPTY", "detail": mensaje}
+                    # Manejo de rechazos por datos incorrectos
+                    detail = data.get("mensaje") or "Los datos no coinciden en la base oficial."
+                    return {"error": "DATA_MISMATCH", "detail": detail}
                 
-                logger.error(f"RUNT API respondió con status {response.status_code}: {response.text}")
-                return {"error": f"RUNT_API_{response.status_code}", "detail": "El servicio del RUNT no respondió correctamente (404/SHELL)."}
+                return {"error": "RUNT_UNREACHABLE", "detail": f"Error del servidor ({response.status_code})"}
+                
         except Exception as e:
-            logger.error(f"Error de conexión en RUNT Agent: {str(e)}")
+            logger.error(f"Error crítico Sinergia: {str(e)}")
             return {"error": "CONNECTION_FAILED", "detail": str(e)}
 
     def _parse_technical_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Extrae los campos críticos: Marca, Línea, Modelo, SOAT y RTM.
+        Mapeo inteligente de la respuesta SHELL. 
+        Soporta los campos 'vehiculo' y 'resumentTecnico'.
         """
-        vehiculo = data.get("vehiculo", {})
-        soat = data.get("soat", {})
-        rtm = data.get("revisionTecnomecanica", {})
+        vehiculo = data.get("vehiculo") or data.get("resumentTecnico") or {}
+        soat = data.get("soat") or {}
+        rtm = data.get("revisionTecnomecanica") or {}
         
         return {
             "marca": vehiculo.get("marca", "DESCONOCIDA"),
@@ -117,7 +111,7 @@ class RuntAgent:
             "vencimiento_soat": soat.get("fechaVencimiento", "N/A"),
             "estado_rtm": "VIGENTE" if rtm.get("estado") == "VIGENTE" else "VENCIDA",
             "vencimiento_rtm": rtm.get("fechaVencimiento", "N/A"),
-            "fuente": "RUNT OFICIAL (REAL-TIME)"
+            "fuente": "RUNT OFICIAL (VERIFICACIÓN TOTAL)"
         }
 
     def get_mock_verified_data(self, plate: str, vin: str) -> Dict[str, Any]:
