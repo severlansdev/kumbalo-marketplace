@@ -11,6 +11,8 @@ class RuntAgent:
     Maneja la lógica de consulta por placa y VIN.
     """
     
+    BASE_URL = "https://portalpublico.runt.gov.co/runt-consulta-centralizada-backend"
+    
     # Diccionario para persistir cookies de sesión vinculadas al captcha ID
     session_cookies = {}
 
@@ -26,7 +28,8 @@ class RuntAgent:
 
     async def get_captcha(self) -> Dict[str, Any]:
         """
-        Obtiene un nuevo captcha del RUNT y CAPTURA la cookie de sesión.
+        Obtiene un nuevo captcha del RUNT. 
+        Guardian: Mapeo multicampo para asegurar que la imagen llegue.
         """
         try:
             async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
@@ -36,19 +39,25 @@ class RuntAgent:
                     data = response.json()
                     captcha_id = data.get("id")
                     
-                    # Hacker Guardian: Guardar las cookies del balanceador de este captcha
+                    # Guardian: Verificar múltiples campos donde el RUNT puede esconder la imagen
+                    raw_img = data.get("imagen") or data.get("base64") or data.get("archivo")
+                    
+                    if not raw_img:
+                        logger.error(f"Guardian: RUNT no entregó imagen. Keys disponibles: {list(data.keys())}")
+                        return {"error": "EMPTY_IMAGE"}
+
+                    # Hacker Guardian: Sincronizar sesión
                     self.session_cookies[captcha_id] = response.cookies
                     
-                    raw_img = data.get("imagen", "")
-                    final_img = raw_img
-                    if raw_img and not raw_img.startswith("data:image"):
-                        final_img = f"data:image/png;base64,{raw_img}"
+                    # Limpiar y prefijar correctamente
+                    if not str(raw_img).startswith("data:image"):
+                        raw_img = f"data:image/png;base64,{raw_img}"
                         
                     return {
                         "id": captcha_id,
-                        "imagen": final_img
+                        "imagen": raw_img
                     }
-                return {"error": "CAPTCHA_FAILED"}
+                return {"error": "CAPTCHA_FAILED", "status": response.status_code}
         except Exception as e:
             return {"error": str(e)}
 

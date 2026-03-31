@@ -112,8 +112,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     const captchaInput = document.getElementById('captchaInput');
     const btnConfirmCaptcha = document.getElementById('btnConfirmCaptcha');
     const btnCancelCaptcha = document.getElementById('btnCancelCaptcha');
+    const btnRefreshCaptcha = document.getElementById('btnRefreshCaptcha');
+    const captchaPlaceholder = document.getElementById('captchaPlaceholder');
     
     let currentCaptchaToken = null;
+
+    const refreshCaptchaFlow = async () => {
+        runtCaptchaImg.style.opacity = '0';
+        if (captchaPlaceholder) captchaPlaceholder.style.display = 'block';
+        try {
+            const captchaData = await window.api.runt.getCaptcha();
+            if (captchaData.error) throw new Error(captchaData.error);
+            
+            currentCaptchaToken = captchaData.id;
+            runtCaptchaImg.src = captchaData.imagen;
+            runtCaptchaImg.onload = () => {
+                runtCaptchaImg.style.opacity = '1';
+                if (captchaPlaceholder) captchaPlaceholder.style.display = 'none';
+            };
+        } catch (err) {
+            console.error("Error refreshing captcha:", err);
+            if (captchaPlaceholder) {
+                captchaPlaceholder.textContent = "Error al conectar. Reintenta.";
+                captchaPlaceholder.style.color = "var(--error)";
+            }
+        }
+    };
 
     const executeRuntQuery = async (placa, vin, docType, docNum, capToken, capValue) => {
         runtModal.style.display = 'flex';
@@ -195,6 +219,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     if (runtForm) {
+        // Asignar evento refresh
+        if (btnRefreshCaptcha) {
+            btnRefreshCaptcha.onclick = (e) => {
+                e.preventDefault();
+                refreshCaptchaFlow();
+            };
+        }
+
         runtForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const placa = document.getElementById('runtPlate').value.trim().toUpperCase();
@@ -207,21 +239,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // 1. Pedir Captcha
+            // 1. Mostrar Modal y Cargar Captcha
             const btn = document.getElementById('btnConsultarRunt');
             const originalBtnText = btn.innerHTML;
             btn.innerHTML = '<span class="spin"></span> CONECTANDO AL RUNT...';
             btn.disabled = true;
             
             try {
-                const captchaData = await window.api.runt.getCaptcha();
-                currentCaptchaToken = captchaData.id;
-                runtCaptchaImg.src = captchaData.imagen;
-                runtCaptchaImg.style.opacity = '1';
-                captchaInput.value = '';
-                
                 captchaModal.style.display = 'flex';
                 gsap.fromTo('#captchaModal .modal-content', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" });
+                
+                // Cargar primer captcha
+                await refreshCaptchaFlow();
                 
                 btn.innerHTML = originalBtnText;
                 btn.disabled = false;

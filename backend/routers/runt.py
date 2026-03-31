@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Path, Query
+from fastapi import APIRouter, HTTPException, Path, Query, Request
 from pydantic import BaseModel
 from typing import Optional
 from ..utils.vehicle_agent import VehicleIntelligenceAgent
+from ..limiter import limiter
 
 router = APIRouter()
 agent = VehicleIntelligenceAgent()
@@ -29,12 +30,15 @@ class ReportPurchaseRequest(BaseModel):
     metodo_pago: str = "mercadopago"
 
 @router.get("/get-captcha")
-async def get_runt_captcha():
+@limiter.limit("10/minute")
+async def get_runt_captcha(request: Request):
     """Obtiene un captcha fresco del RUNT para resolver en el frontend."""
     return await agent.runt.get_captcha()
 
 @router.get("/consulta/{placa}", response_model=RuntResponse)
+@limiter.limit("5/minute")
 async def consultar_placa(
+    request: Request,
     placa: str = Path(..., description="Placa del vehículo Ej: ABC12D", min_length=5, max_length=6),
     vin: Optional[str] = Query(None, description="VIN (Serial de chasis)"),
     doc_type: Optional[str] = Query(None, description="Tipo de documento (C, E, N, P)"),

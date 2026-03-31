@@ -46,9 +46,6 @@ class VehicleIntelligenceAgent:
         self.simit = SimitAgent()
         self.runt = RuntAgent()
 
-    async def get_vehicle_dna(self, placa: str, vin: Optional[str] = None, captcha_token: Optional[str] = None, captcha_value: Optional[str] = None) -> VehicleADN:
-        placa = placa.upper().strip().replace("-", "")
-        
     async def get_vehicle_dna(self, placa: str, vin: Optional[str] = None, doc_type: Optional[str] = None, doc_num: Optional[str] = None, captcha_token: Optional[str] = None, captcha_value: Optional[str] = None) -> VehicleADN:
         placa = placa.upper().strip().replace("-", "")
         
