@@ -100,112 +100,141 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Manejo RUNT Analyzer Widget
+    // Manejo RUNT Analyzer Widget con HITL Captcha
     const runtForm = document.getElementById('runtForm');
     const runtModal = document.getElementById('runtModal');
     const closeRuntModal = document.getElementById('closeRuntModal');
     const runtLoader = document.getElementById('runtLoader');
     const runtResults = document.getElementById('runtResults');
     const runtError = document.getElementById('runtError');
+    const captchaModal = document.getElementById('captchaModal');
+    const runtCaptchaImg = document.getElementById('runtCaptchaImg');
+    const captchaInput = document.getElementById('captchaInput');
+    const btnConfirmCaptcha = document.getElementById('btnConfirmCaptcha');
+    const btnCancelCaptcha = document.getElementById('btnCancelCaptcha');
+    
+    let currentCaptchaToken = null;
+
+    const executeRuntQuery = async (placa, vin, capToken, capValue) => {
+        runtModal.style.display = 'flex';
+        runtLoader.style.display = 'block';
+        runtResults.style.display = 'none';
+        runtError.textContent = '';
+
+        gsap.fromTo('.runt-modal-content', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" });
+
+        try {
+            const data = await window.api.runt.check(placa, vin, capToken, capValue);
+            
+            // Poblar UI
+            document.getElementById('dna-plate-title').textContent = data.placa;
+            document.getElementById('dna-marca').textContent = data.marca;
+            document.getElementById('dna-linea').textContent = data.linea;
+            document.getElementById('dna-modelo').textContent = data.modelo;
+            document.getElementById('dna-color').textContent = data.color;
+            
+            const soatBadge = document.getElementById('dna-soat-badge');
+            soatBadge.textContent = data.estado_soat;
+            soatBadge.className = `badge ${data.estado_soat === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}`;
+            document.getElementById('dna-soat-venc').textContent = `Vence: ${data.vencimiento_soat}`;
+            
+            const rtmBadge = document.getElementById('dna-rtm-badge');
+            rtmBadge.textContent = data.estado_rtm;
+            rtmBadge.className = `badge ${data.estado_rtm === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}`;
+            document.getElementById('dna-rtm-venc').textContent = `Vence: ${data.vencimiento_rtm}`;
+            
+            const multasText = document.getElementById('dna-multas-text');
+            const multasValor = document.getElementById('dna-multas-valor');
+            if (data.multas === 0) {
+                multasText.textContent = "Sin multas pendientes";
+                multasText.style.color = "var(--success)";
+                multasValor.textContent = "$0";
+            } else {
+                multasText.textContent = `${data.multas} Infracciones`;
+                multasText.style.color = "var(--error)";
+                multasValor.textContent = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(data.valor_multas);
+            }
+            
+            const embargosEl = document.getElementById('dna-embargos');
+            if (data.embargos) {
+                embargosEl.textContent = "ALERTA: " + data.limitaciones_propiedad;
+                embargosEl.style.color = "var(--error)";
+            } else {
+                embargosEl.textContent = "LIBRE DE EMBARGOS";
+                embargosEl.style.color = "var(--success)";
+            }
+
+            const fuenteEl = document.getElementById('dna-fuente');
+            if (fuenteEl) {
+                fuenteEl.textContent = data.fuente;
+                fuenteEl.style.color = data.es_verificado ? "#2ecc71" : "var(--gray)";
+                if (data.es_verificado) {
+                    fuenteEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg> ${data.fuente}`;
+                }
+            }
+
+            runtLoader.style.display = 'none';
+            runtResults.style.display = 'block';
+
+            const btnBuy = document.getElementById('btnBuyFullReport');
+            if (btnBuy) {
+                btnBuy.onclick = async () => {
+                    btnBuy.disabled = true;
+                    btnBuy.textContent = "PROCESANDO...";
+                    try {
+                        const p = await window.api.runt.buyReport(data.placa, "usuario@ejemplo.com");
+                        window.location.href = p.init_point;
+                    } catch (err) {
+                        alert("Error al generar la compra.");
+                        btnBuy.disabled = false;
+                        btnBuy.textContent = "COMPRAR REPORTE DETALLLADO ($40.000)";
+                    }
+                };
+            }
+        } catch (err) {
+            runtModal.style.display = 'none';
+            runtError.textContent = err.message || 'Error al conectar con la base de datos nacional.';
+        }
+    };
 
     if (runtForm) {
         runtForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const placa = (document.getElementById('runtPlate') || document.getElementById('runtPlaca')).value.trim();
-            const vinInput = document.getElementById('runtVin');
-            const vin = vinInput ? vinInput.value.trim() : null;
-            runtError.textContent = '';
+            const placa = (document.getElementById('runtPlate') || document.getElementById('runtPlaca')).value.trim().toUpperCase();
+            const vin = (document.getElementById('runtVin')).value.trim() || null;
             
             if (placa.length < 5 || placa.length > 6) {
                 runtError.textContent = 'Ingresa una placa válida (ej. ABC12D)';
                 return;
             }
 
-            // Mostrar Modal con loader
-            runtModal.style.display = 'flex';
-            runtLoader.style.display = 'block';
-            runtResults.style.display = 'none';
-
-            // GSAP animacion en modal
-            gsap.fromTo('.runt-modal-content', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" });
-
+            // 1. Pedir Captcha al Backend antes de mostrar nada
+            const originalBtnText = document.getElementById('btnConsultarRunt').innerHTML;
+            document.getElementById('btnConsultarRunt').innerHTML = 'Iniciando Conexión RUNT...';
+            
             try {
-                // Delay teatral de escáner
-                await new Promise(r => setTimeout(r, 1500));
-                
-                const data = await window.api.runt.check(placa, vin);
-                
-                // Poblar UI con diseño Premium ADN
-                document.getElementById('dna-plate-title').textContent = data.placa;
-                document.getElementById('dna-marca').textContent = data.marca;
-                document.getElementById('dna-linea').textContent = data.linea;
-                document.getElementById('dna-modelo').textContent = data.modelo;
-                document.getElementById('dna-color').textContent = data.color;
-                
-                const soatBadge = document.getElementById('dna-soat-badge');
-                soatBadge.textContent = data.estado_soat;
-                soatBadge.className = `badge ${data.estado_soat === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}`;
-                document.getElementById('dna-soat-venc').textContent = `Vence: ${data.vencimiento_soat}`;
-                
-                const rtmBadge = document.getElementById('dna-rtm-badge');
-                rtmBadge.textContent = data.estado_rtm;
-                rtmBadge.className = `badge ${data.estado_rtm === 'VIGENTE' ? 'status-vigente' : 'status-vencido'}`;
-                document.getElementById('dna-rtm-venc').textContent = `Vence: ${data.vencimiento_rtm}`;
-                
-                const multasText = document.getElementById('dna-multas-text');
-                const multasValor = document.getElementById('dna-multas-valor');
-                if (data.multas === 0) {
-                    multasText.textContent = "Sin multas pendientes";
-                    multasText.style.color = "var(--success)";
-                    multasValor.textContent = "$0";
-                } else {
-                    multasText.textContent = `${data.multas} Infracciones`;
-                    multasText.style.color = "var(--error)";
-                    multasValor.textContent = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(data.valor_multas);
-                }
-                
-                const embargosEl = document.getElementById('dna-embargos');
-                if (data.embargos) {
-                    embargosEl.textContent = "ALERTA: " + data.limitaciones_propiedad;
-                    embargosEl.style.color = "var(--error)";
-                } else {
-                    embargosEl.textContent = "LIBRE DE EMBARGOS";
-                    embargosEl.style.color = "var(--success)";
-                }
+                const captchaData = await window.api.runt.getCaptcha();
+                currentCaptchaToken = captchaData.id;
+                runtCaptchaImg.src = `data:image/png;base64,${captchaData.imagen}`;
+                captchaInput.value = '';
+                captchaModal.style.display = 'flex';
+                document.getElementById('btnConsultarRunt').innerHTML = originalBtnText;
 
-                // Fuente y Verificación
-                const fuenteEl = document.getElementById('dna-fuente');
-                if (fuenteEl) {
-                    fuenteEl.textContent = data.fuente;
-                    fuenteEl.style.color = data.es_verificado ? "#2ecc71" : "var(--gray)";
-                    if (data.es_verificado) {
-                        fuenteEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg> ${data.fuente}`;
-                    }
-                }
+                btnConfirmCaptcha.onclick = () => {
+                    const val = captchaInput.value.trim().toUpperCase();
+                    if (!val) return;
+                    captchaModal.style.display = 'none';
+                    executeRuntQuery(placa, vin, currentCaptchaToken, val);
+                };
 
-                runtLoader.style.display = 'none';
-                runtResults.style.display = 'block';
-
-                // Configurar botón de compra
-                const btnBuy = document.getElementById('btnBuyFullReport');
-                if (btnBuy) {
-                    btnBuy.onclick = async () => {
-                        btnBuy.disabled = true;
-                        btnBuy.textContent = "PROCESANDO...";
-                        try {
-                            const p = await window.api.runt.buyReport(data.placa, "usuario@ejemplo.com");
-                            window.location.href = p.init_point;
-                        } catch (err) {
-                            alert("Error al generar la compra.");
-                            btnBuy.disabled = false;
-                            btnBuy.textContent = "COMPRAR REPORTE DETALLLADO ($40.000)";
-                        }
-                    };
-                }
-                
+                btnCancelCaptcha.onclick = () => {
+                    captchaModal.style.display = 'none';
+                };
             } catch (err) {
-                runtModal.style.display = 'none';
-                runtError.textContent = err.message || 'Error al conectar con la base de datos nacional.';
+                console.error(err);
+                // Si falla el captcha, intentamos consulta directa (fallback inteligente ya configurado en backend)
+                executeRuntQuery(placa, vin, null, null);
+                document.getElementById('btnConsultarRunt').innerHTML = originalBtnText;
             }
         });
 

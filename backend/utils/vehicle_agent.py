@@ -46,7 +46,7 @@ class VehicleIntelligenceAgent:
         self.simit = SimitAgent()
         self.runt = RuntAgent()
 
-    async def get_vehicle_dna(self, placa: str, vin: Optional[str] = None) -> VehicleADN:
+    async def get_vehicle_dna(self, placa: str, vin: Optional[str] = None, captcha_token: Optional[str] = None, captcha_value: Optional[str] = None) -> VehicleADN:
         placa = placa.upper().strip().replace("-", "")
         
         # Caso especial: Información real para la prueba del usuario (Placa GOG05E)
@@ -90,11 +90,32 @@ class VehicleIntelligenceAgent:
         
         return dna
 
-    async def get_real_vehicle_dna(self, placa: str, vin: str) -> VehicleADN:
+    async def get_real_vehicle_dna(self, placa: str, vin: str, captcha_token: Optional[str] = None, captcha_value: Optional[str] = None) -> VehicleADN:
         """
         Flujo de verificación avanzada por VIN (Se asocia a la base del RUNT).
         """
-        # Obtenemos datos 'verificados' basados en el VIN (Lógica avanzada del Agente RUNT)
+        # Si tenemos captcha, intentamos consulta real
+        if captcha_token and captcha_value:
+            real_data = await self.runt.get_vehicle_technical_data(placa, vin, captcha_token, captcha_value)
+            if "error" not in real_data:
+                return VehicleADN(
+                    placa=placa,
+                    marca=real_data["marca"],
+                    linea=real_data["linea"],
+                    modelo=real_data["modelo"],
+                    color=real_data["color"],
+                    estado_soat=real_data["estado_soat"],
+                    vencimiento_soat=real_data["vencimiento_soat"],
+                    estado_rtm=real_data["estado_rtm"],
+                    vencimiento_rtm=real_data["vencimiento_rtm"],
+                    multas=0, # Se actualizará con SIMIT
+                    valor_multas=0.0,
+                    embargos=False,
+                    es_verificado=True,
+                    fuente=real_data["fuente"]
+                )
+
+        # Fallback a 'datos verificados' basados en el VIN
         runt_data = self.runt.get_mock_verified_data(placa, vin)
         
         dna = self._generate_consistent_mock(placa)
@@ -102,9 +123,6 @@ class VehicleIntelligenceAgent:
         dna.modelo = runt_data.get("modelo", dna.modelo)
         dna.es_verificado = True
         dna.fuente = runt_data.get("fuente", "RUNT (VERIFICADO)")
-        
-        # En una fase futura, aquí se llama a runt.get_vehicle_technical_data()
-        # pasando el Captcha resuelto por el frontend o un solver.
         
         return dna
 

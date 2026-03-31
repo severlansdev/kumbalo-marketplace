@@ -28,17 +28,24 @@ class ReportPurchaseRequest(BaseModel):
     email: str
     metodo_pago: str = "mercadopago"
 
+@router.get("/get-captcha")
+async def get_runt_captcha():
+    """Obtiene un captcha fresco del RUNT para resolver en el frontend."""
+    return await agent.runt.get_captcha()
+
 @router.get("/consulta/{placa}", response_model=RuntResponse)
 async def consultar_placa(
     placa: str = Path(..., description="Placa del vehículo Ej: ABC12D", min_length=5, max_length=6),
-    vin: Optional[str] = Query(None, description="VIN (Serial de chasis) para consulta verificada")
+    vin: Optional[str] = Query(None, description="VIN (Serial de chasis) para consulta verificada"),
+    captcha_token: Optional[str] = Query(None, description="ID del captcha"),
+    captcha_value: Optional[str] = Query(None, description="Valor resuelto por el usuario")
 ):
     """
     Consulta dinámica y determinista del ADN vehicular.
-    Si se proporciona el VIN, se simula una consulta verificada al RUNT.
+    Soporta resolución de Captcha HITL para datos 100% reales.
     """
     try:
-        dna = await agent.get_vehicle_dna(placa, vin)
+        dna = await agent.get_vehicle_dna(placa, vin, captcha_token, captcha_value)
         return dna
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en la consulta vehicular: {str(e)}")

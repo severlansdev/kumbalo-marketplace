@@ -148,9 +148,16 @@ const api = {
     },
     // Endpoints RUNT
     runt: {
-        check: async (placa, vin = null) => {
-            let url = `/v1/runt/consulta/${placa}`;
-            if (vin) url += `?vin=${encodeURIComponent(vin)}`;
+        getCaptcha: async () => {
+            return await api.request('/v1/runt/get-captcha', {
+                method: 'GET'
+            });
+        },
+        check: async (placa, vin = null, captchaToken = null, captchaValue = null) => {
+            let url = `/v1/runt/consulta/${placa}?v=1`;
+            if (vin) url += `&vin=${encodeURIComponent(vin)}`;
+            if (captchaToken) url += `&captcha_token=${encodeURIComponent(captchaToken)}`;
+            if (captchaValue) url += `&captcha_value=${encodeURIComponent(captchaValue)}`;
             return await api.request(url, {
                 method: 'GET'
             });

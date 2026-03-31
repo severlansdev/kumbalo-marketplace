@@ -487,6 +487,22 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Captcha Modal for HITL -->
+        <div id="captchaModal" class="modal-backdrop" aria-hidden="true" style="display: none; align-items: center; justify-content: center; z-index: 10000;">
+            <div class="modal-content" style="max-width: 350px; text-align: center; background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h3 style="color: white; margin-bottom: 10px;">🛡️ Verificación Humana</h3>
+                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 20px;">Por favor resuelve el captcha oficial del RUNT para obtener datos 100% reales.</p>
+                <div id="captchaImageContainer" style="margin-bottom: 20px; background: white; padding: 10px; border-radius: 12px; display: flex; justify-content: center;">
+                    <img id="runtCaptchaImg" src="" alt="Captcha RUNT" style="height: 60px;">
+                </div>
+                <input type="text" id="captchaInput" placeholder="CARACTERES" style="width: 100%; padding: 15px; margin-bottom: 20px; text-transform: uppercase; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; text-align: center; font-weight: bold; letter-spacing: 3px;">
+                <div class="modal-buttons" style="display: flex; gap: 10px;">
+                    <button id="btnCancelCaptcha" class="btn btn-outline btn-block" style="border-radius: 10px;">CANCELAR</button>
+                    <button id="btnConfirmCaptcha" class="btn btn-primary btn-block" style="border-radius: 10px; font-weight: bold;">VERIFICAR</button>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- Services Section USP -->
