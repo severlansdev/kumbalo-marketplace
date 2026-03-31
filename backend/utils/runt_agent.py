@@ -25,19 +25,33 @@ class RuntAgent:
 
     async def get_captcha(self) -> Dict[str, Any]:
         """
-        Obtiene un nuevo captcha del RUNT para ser resuelto.
+        Obtiene un nuevo captcha del RUNT. Refinado para evitar imágenes rotas.
         """
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
                 response = await client.get(f"{self.BASE_URL}/captcha/libre-captcha/generar", headers=self.headers)
+                
                 if response.status_code == 200:
                     data = response.json()
+                    img_b64 = data.get("imagen")
+                    
+                    if not img_b64:
+                        logger.error(f"RUNT: El captcha vino sin imagen corporal. Respuesta: {data}")
+                        return {"error": "EMPTY_IMAGE"}
+
+                    # Limpiar Base64 por si viene con headers o caracteres extra
+                    if "base64," in img_b64:
+                        img_b64 = img_b64.split("base64,")[1]
+                    
                     return {
                         "id": data.get("id"),
-                        "imagen": f"data:image/png;base64,{data.get('imagen')}"
+                        "imagen": f"data:image/png;base64,{img_b64.strip()}"
                     }
-                return {"error": "CAPTCHA_FAILED"}
+                
+                logger.error(f"RUNT Captcha Error {response.status_code}: {response.text}")
+                return {"error": "CAPTCHA_FAILED", "status": response.status_code}
         except Exception as e:
+            logger.error(f"Excepción obteniendo captcha: {str(e)}")
             return {"error": str(e)}
 
     async def get_vehicle_technical_data(self, plate: str, vin: str = None, doc_type: str = "C", doc_num: str = None, captcha_token: str = None, captcha_value: str = None) -> Dict[str, Any]:
