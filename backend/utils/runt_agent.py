@@ -11,8 +11,9 @@ class RuntAgent:
     Maneja la lógica de consulta por placa y VIN.
     """
     
-    BASE_URL = "https://runtproapi.runt.gov.co/CYRConsultaVehiculoMS"
-    
+    # Diccionario para persistir cookies de sesión vinculadas al captcha ID
+    session_cookies = {}
+
     def __init__(self):
         self.headers = {
             "Content-Type": "application/json",
@@ -25,8 +26,7 @@ class RuntAgent:
 
     async def get_captcha(self) -> Dict[str, Any]:
         """
-        Obtiene un nuevo captcha del RUNT. 
-        Sinergia: Manejo inteligente de prefijos base64 para evitar imágenes rotas.
+        Obtiene un nuevo captcha del RUNT y CAPTURA la cookie de sesión.
         """
         try:
             async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
@@ -34,32 +34,34 @@ class RuntAgent:
                 
                 if response.status_code == 200:
                     data = response.json()
-                    raw_img = data.get("imagen", "")
+                    captcha_id = data.get("id")
                     
-                    # Sinergia: No duplicar el prefijo data:image si el RUNT ya lo envía
+                    # Hacker Guardian: Guardar las cookies del balanceador de este captcha
+                    self.session_cookies[captcha_id] = response.cookies
+                    
+                    raw_img = data.get("imagen", "")
                     final_img = raw_img
                     if raw_img and not raw_img.startswith("data:image"):
                         final_img = f"data:image/png;base64,{raw_img}"
                         
                     return {
-                        "id": data.get("id"),
+                        "id": captcha_id,
                         "imagen": final_img
                     }
-                
-                logger.error(f"RUNT Captcha Error {response.status_code}")
                 return {"error": "CAPTCHA_FAILED"}
         except Exception as e:
-            logger.error(f"Excepción en captcha: {str(e)}")
             return {"error": str(e)}
 
     async def get_vehicle_technical_data(self, plate: str, vin: str = None, doc_type: str = "C", doc_num: str = None, captcha_token: str = None, captcha_value: str = None) -> Dict[str, Any]:
         """
-        Consulta real RUNT vía Microservicio /auth (SHELL Tunnel).
+        Consulta RUNT inyectando la cookie de sesión capturada.
         """
-        # Payload estructural completo para estabilizar el microservicio AUTH
+        # Sinergia: Identificar tipoConsulta exacto (1=Documento, 2=VIN)
+        tipo_consulta = "2" if vin else "1"
+        
         payload = {
             "procedencia": "NACIONAL",
-            "tipoConsulta": "1" if not vin else "VIN",
+            "tipoConsulta": tipo_consulta,
             "placa": plate.upper().strip(),
             "tipoDocumento": doc_type or "C",
             "documento": doc_num.strip() if doc_num else "",
@@ -69,7 +71,7 @@ class RuntAgent:
             "rtm": None,
             "reCaptcha": None,
             "captcha": captcha_value.upper().strip() if captcha_value else "",
-            "valueCaptchaEncripted": "", # Campo de arquitectura mandatorio para evitar 500
+            "valueCaptchaEncripted": "",
             "idLibreCaptcha": captcha_token,
             "verBannerSoat": True,
             "configuracion": {
@@ -78,29 +80,28 @@ class RuntAgent:
             }
         }
         
-        logger.info(f"SINERGIA: Consultando RUNT Auth para {plate}")
+        # Recuperar cookies de sesión vinculadas a este captcha_token
+        cookies = self.session_cookies.get(captcha_token)
         
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                # Sinergia: El endpoint absoluto previene desvíos 404
-                url = f"{self.BASE_URL}/auth"
-                response = await client.post(url, json=payload, headers=self.headers)
+            async with httpx.AsyncClient(timeout=30.0, cookies=cookies) as client:
+                response = await client.post(f"{self.BASE_URL}/auth", json=payload, headers=self.headers)
                 
                 if response.status_code == 200:
+                    # Limpiar memoria de cookies después de usarla
+                    if captcha_token in self.session_cookies:
+                        del self.session_cookies[captcha_token]
+                        
                     data = response.json()
-                    # Si el RUNT responde con éxito (aunque sea con mensaje de error interno)
                     if data.get("vehiculo") or data.get("resumentTecnico"):
                         return self._parse_technical_data(data)
                     
-                    # Manejo de rechazos por datos incorrectos
-                    detail = data.get("mensaje") or "Los datos no coinciden en la base oficial."
+                    detail = data.get("mensaje") or "Los datos no coinciden en el RUNT oficial."
                     return {"error": "DATA_MISMATCH", "detail": detail}
                 
-                return {"error": "RUNT_UNREACHABLE", "detail": f"Error del servidor ({response.status_code})"}
-                
+                return {"error": "RUNT_ERR", "detail": f"Error del servidor RUNT ({response.status_code})"}
         except Exception as e:
-            logger.error(f"Error crítico Sinergia: {str(e)}")
-            return {"error": "CONNECTION_FAILED", "detail": str(e)}
+            return {"error": "CONN_FAILED", "detail": str(e)}
 
     def _parse_technical_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
