@@ -244,3 +244,9 @@ try:
     app.include_router(runt.router, prefix="/api/v1/runt", tags=["RUNT Lead Magnet"])
 except Exception as e:
     print(f"[WARN] Could not load runt router: {e}")
+
+try:
+    from .routers import analytics
+    app.include_router(analytics.router, prefix="/api", tags=["Market Intelligence"])
+except Exception as e:
+    print(f"[WARN] Could not load analytics router: {e}")

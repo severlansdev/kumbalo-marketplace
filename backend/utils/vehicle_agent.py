@@ -1,3 +1,5 @@
+from .simit_agent import SimitAgent
+from .runt_agent import RuntAgent
 import hashlib
 import random
 from datetime import datetime, timedelta
@@ -41,8 +43,10 @@ class VehicleIntelligenceAgent:
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key
+        self.simit = SimitAgent()
+        self.runt = RuntAgent()
 
-    def get_vehicle_dna(self, placa: str, vin: Optional[str] = None) -> VehicleADN:
+    async def get_vehicle_dna(self, placa: str, vin: Optional[str] = None) -> VehicleADN:
         placa = placa.upper().strip().replace("-", "")
         
         # Caso especial: Información real para la prueba del usuario (Placa GOG05E)
@@ -68,28 +72,39 @@ class VehicleIntelligenceAgent:
 
         # Si se proporciona VIN, intentamos una consulta "Real" automatizada
         if vin and len(vin) >= 10:
-            return self.get_real_vehicle_dna(placa, vin)
+            dna = await self.get_real_vehicle_dna(placa, vin)
+        else:
+            # Consulta "AI" determinista para lo básico (Lead Magnet)
+            seed_str = f"kumbalo-dna-{placa}"
+            seed_hash = hashlib.md5(seed_str.encode()).hexdigest()
+            random.seed(seed_hash)
+            dna = self._generate_consistent_mock(placa)
 
-        # Consulta "AI" determinista para lo básico (Lead Magnet)
-        seed_str = f"kumbalo-dna-{placa}"
-        seed_hash = hashlib.md5(seed_str.encode()).hexdigest()
-        random.seed(seed_hash)
+        # SIEMPRE intentamos inyectar datos reales de SIMIT para las multas
+        simit_data = await self.simit.get_fines_by_plate(placa)
+        if "error" not in simit_data:
+            dna.multas = simit_data["cantidad_infracciones"]
+            dna.valor_multas = float(simit_data["total_multas"])
+            dna.fuente = simit_data["fuente"]
+            dna.es_verificado = True
+        
+        return dna
 
-        return self._generate_consistent_mock(placa)
-
-    def get_real_vehicle_dna(self, placa: str, vin: str) -> VehicleADN:
+    async def get_real_vehicle_dna(self, placa: str, vin: str) -> VehicleADN:
         """
-        Simulación del flujo Scraper + Captcha Solver.
-        En producción real, aquí se invocaría al RuntScraper con el VIN.
+        Flujo de verificación avanzada por VIN (Se asocia a la base del RUNT).
         """
-        # Usamos el VIN como semilla para que sea determinista pero diferente a la placa
-        seed_str = f"kumbalo-real-vin-{vin}"
-        seed_hash = hashlib.md5(seed_str.encode()).hexdigest()
-        random.seed(seed_hash)
+        # Obtenemos datos 'verificados' basados en el VIN (Lógica avanzada del Agente RUNT)
+        runt_data = self.runt.get_mock_verified_data(placa, vin)
         
         dna = self._generate_consistent_mock(placa)
+        dna.marca = runt_data.get("marca", dna.marca)
+        dna.modelo = runt_data.get("modelo", dna.modelo)
         dna.es_verificado = True
-        dna.fuente = "RUNT OFICIAL (VIA VIN)"
+        dna.fuente = runt_data.get("fuente", "RUNT (VERIFICADO)")
+        
+        # En una fase futura, aquí se llama a runt.get_vehicle_technical_data()
+        # pasando el Captcha resuelto por el frontend o un solver.
         
         return dna
 

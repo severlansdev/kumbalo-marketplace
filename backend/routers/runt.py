@@ -38,7 +38,7 @@ async def consultar_placa(
     Si se proporciona el VIN, se simula una consulta verificada al RUNT.
     """
     try:
-        dna = agent.get_vehicle_dna(placa, vin)
+        dna = await agent.get_vehicle_dna(placa, vin)
         return dna
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en la consulta vehicular: {str(e)}")

@@ -109,6 +109,7 @@ async def get_predictive_alerts(current_user: models.Usuario = Depends(get_curre
             "cta": "Ver Catálogo",
             "priority": "Medium"
         })
+    return alerts
 @router.get("/price-suggestion/{brand}/{model}")
 async def get_price_suggestion(brand: str, model: str):
     """Retorna una sugerencia de precio basada en el mercado real para el formulario de creación."""
@@ -122,8 +123,6 @@ async def get_price_suggestion(brand: str, model: str):
         }
     else:
         return {"error": "Insufficient data"}
-
-    return alerts
 
 @router.get("/market-pulse")
 async def get_market_pulse():
