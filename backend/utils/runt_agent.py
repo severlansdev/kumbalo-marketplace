@@ -11,7 +11,7 @@ class RuntAgent:
     Maneja la lógica de consulta por placa y VIN.
     """
     
-    BASE_URL = "https://portalpublico.runt.gov.co/runt-consulta-centralizada-backend"
+    BASE_URL = "https://runtproapi.runt.gov.co/CYRConsultaVehiculoMS"
     
     # Diccionario para persistir cookies de sesión vinculadas al captcha ID
     session_cookies = {}
@@ -74,20 +74,18 @@ class RuntAgent:
             "placa": plate.upper().strip(),
             "tipoDocumento": doc_type or "C",
             "documento": doc_num.strip() if doc_num else "",
-            "vin": vin.upper().strip() if vin else None,
-            "soat": None,
-            "aseguradora": "",
-            "rtm": None,
-            "reCaptcha": None,
+            "idLibreCaptcha": captcha_token or "",
             "captcha": captcha_value.upper().strip() if captcha_value else "",
-            "valueCaptchaEncripted": "",
-            "idLibreCaptcha": captcha_token,
             "verBannerSoat": True,
             "configuracion": {
                 "tiempoInactividad": "900",
                 "tiempoCuentaRegresiva": "10"
             }
         }
+        
+        # VIN solo si es tipo consulta 2
+        if vin:
+            payload["vin"] = vin.upper().strip()
         
         # Recuperar cookies de sesión vinculadas a este captcha_token
         cookies = self.session_cookies.get(captcha_token)
