@@ -9,13 +9,23 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Crear la aplicación directamente en este archivo (Vercel lo requiere así para máxima compatibilidad)
 app = FastAPI(title="KUMBALO API - Vercel Native")
 
-# CORS (Copiado de backend/main.py para consistencia)
+# CORS Hardened (Hacker Guardian - Sincronizado con main.py)
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "https://kumbalo.com",
+    "https://www.kumbalo.com",
+    "https://kumbalo-marketplace.vercel.app",
+    "https://kumbalo-api.vercel.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*-severlansdevs-projects\.vercel\.app", # Soporte Vercel Previews
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With", "Accept"],
 )
 
 # Importar y registrar los routers de forma aislada
