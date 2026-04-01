@@ -146,7 +146,8 @@ def recover_password(request: Request, email_data: dict = Body(...), db: Session
     user = db.query(models.Usuario).filter(models.Usuario.email == email).first()
     if user:
         reset_token = str(uuid.uuid4())
-        reset_link = f"http://localhost:5500/resetar.html?token={reset_token}"
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5500")
+        reset_link = f"{frontend_url}/resetar.html?token={reset_token}"
         
         send_email(
             to_email=user.email,
