@@ -3,6 +3,9 @@ import boto3
 import json
 from dotenv import load_dotenv, set_key
 
+# Cargar variables de entorno del archivo .env local
+load_dotenv()
+
 # 1. Configuración de credenciales (EXTRAER DE .ENV POR SEGURIDAD)
 ACCESS_KEY = os.getenv("AWS_ACCESS_KEY_ID")
 SECRET_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")

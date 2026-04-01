@@ -610,6 +610,123 @@ img {
     letter-spacing: 1px;
 }
 
+/* About Section - ADN Kumbalo Styles */
+.about-section {
+    padding: var(--space-24) 0;
+    background: linear-gradient(180deg, var(--light) 0%, #0a0a0a 100%);
+    overflow: hidden;
+    position: relative;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-16);
+    align-items: center;
+}
+
+.about-text {
+    font-size: var(--font-size-lg);
+    line-height: 1.8;
+    color: var(--gray);
+    margin-bottom: var(--space-10);
+}
+
+.values-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+
+.value-item {
+    display: flex;
+    gap: var(--space-6);
+    padding: var(--space-6);
+    border-radius: var(--radius-xl);
+    transition: var(--transition-normal);
+}
+
+.value-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    transform: translateX(10px);
+}
+
+.value-icon {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-black);
+    color: rgba(255, 40, 0, 0.3);
+    line-height: 1;
+    min-width: 60px;
+}
+
+.value-details h4 {
+    color: var(--white);
+    margin-bottom: var(--space-2);
+    font-size: var(--font-size-xl);
+}
+
+.value-details p {
+    color: var(--gray);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+}
+
+.image-wrapper {
+    position: relative;
+    border-radius: 40px;
+    overflow: hidden;
+    padding: 20px;
+}
+
+.hq-img {
+    width: 100%;
+    border-radius: 30px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    transition: transform 0.8s ease;
+}
+
+.image-wrapper:hover .hq-img {
+    transform: scale(1.05);
+}
+
+.experience-badge {
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    background: var(--brand-gradient-cta);
+    padding: 25px;
+    border-radius: 24px;
+    color: white;
+    box-shadow: var(--brand-shadow-glow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.experience-badge strong {
+    font-size: var(--font-size-3xl);
+    font-weight: 900;
+}
+
+.experience-badge span {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+@media (max-width: 968px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-20);
+    }
+    
+    .about-image {
+        order: -1;
+    }
+}
+
 /* Search Section */
 .search-section {
     background: transparent;
