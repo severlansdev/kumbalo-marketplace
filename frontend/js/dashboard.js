@@ -416,6 +416,7 @@ async function loadTraspasos() {
             let statusColor = '#f59e0b'; // warning
             if (t.estado === 'finalizado') statusColor = '#10b981'; // success
             if (t.estado === 'documentos_pendientes') statusColor = '#3b82f6'; // info
+            if (t.estado === 'verificado_kumbalo') statusColor = '#8b5cf6'; // purple
 
             const formattedPrice = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(t.costo_total);
 
@@ -428,7 +429,7 @@ async function loadTraspasos() {
                 <div style="display:flex; gap:10px;">
                     ${t.estado === 'pago_pendiente' ? 
                         `<button onclick="pagarTramite(${t.id})" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.8rem;">Pagar $440k</button>` :
-                        `<button class="btn btn-outline" style="padding: 8px 15px; font-size: 0.8rem;">Ver Detalles</button>`
+                        `<button onclick='gestionTraspaso(${JSON.stringify(t)})' class="btn btn-outline" style="padding: 8px 15px; font-size: 0.8rem;">Gestionar Expediente</button>`
                     }
                 </div>
             `;
@@ -438,6 +439,127 @@ async function loadTraspasos() {
         list.innerHTML = `<p style="color:red;">Error al cargar trámites: ${e.message}</p>`;
     }
 }
+
+window.gestionTraspaso = function(tramite) {
+    document.getElementById('current_tramite_id').value = tramite.id;
+    const modal = document.getElementById('documentosTramiteModal');
+    
+    // Parse documentos_json
+    let docs = {};
+    if (tramite.documentos_json) {
+        try {
+            docs = JSON.parse(tramite.documentos_json);
+        } catch(e) { docs = {}; }
+    }
+    
+    // Update UI for each doc type
+    const tipos = ['cedula_vendedor', 'cedula_comprador', 'contrato', 'poder', 'fun'];
+    tipos.forEach(tipo => {
+        const itemEl = document.querySelector(`.doc-upload-item[data-tipo="${tipo}"]`);
+        const statusEl = document.getElementById(`status-${tipo}`);
+        const viewBtn = document.getElementById(`view-${tipo}`);
+        
+        // Remove existing action buttons if any (like Regenerar)
+        const existingActions = itemEl.querySelector('.regen-actions');
+        if(existingActions) existingActions.remove();
+
+        if (docs[tipo]) {
+            statusEl.textContent = 'CARGADO';
+            statusEl.style.color = '#10b981';
+            statusEl.style.background = 'rgba(16,185,129,0.1)';
+            viewBtn.style.display = 'flex';
+            viewBtn.href = docs[tipo].url;
+
+            // Si es contrato y es auto-generado, ofrecer regenerar
+            if (tipo === 'contrato' && docs[tipo].es_borrador_auto) {
+                statusEl.textContent = 'AUTO-GENERADO';
+                statusEl.style.color = 'var(--primary)';
+                const regenDiv = document.createElement('div');
+                regenDiv.className = 'regen-actions';
+                regenDiv.style.marginTop = '10px';
+                regenDiv.innerHTML = `
+                    <button onclick="regenerarContrato(${tramite.id})" class="btn btn-outline" style="width:100%; font-size:0.7rem; padding:5px; border-color:var(--primary); color:var(--primary);">
+                        🔄 Sincronizar Datos y Regenerar
+                    </button>
+                    <p style="font-size:0.6rem; color:#888; margin-top:5px;">Generado con placa: ${tramite.moto.placa || 'N/A'}</p>
+                `;
+                itemEl.appendChild(regenDiv);
+            }
+        } else {
+            statusEl.textContent = 'PENDIENTE';
+            statusEl.style.color = '#888';
+            statusEl.style.background = 'rgba(0,0,0,0.3)';
+            viewBtn.style.display = 'none';
+        }
+    });
+
+    modal.style.display = 'flex';
+    gsap.fromTo(modal.querySelector('.modal-content'), 
+        { y: -50, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 0.3 }
+    );
+};
+
+window.regenerarContrato = async function(tramiteId) {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Regenerando PDF...';
+    btn.disabled = true;
+
+    try {
+        const response = await window.api.request(`/v1/tramites/${tramiteId}/generar-contrato`, {
+            method: 'POST',
+            headers: window.api.getHeaders()
+        });
+        alert("¡Contrato actualizado con los datos actuales del perfil!");
+        window.gestionTraspaso(response);
+    } catch (e) {
+        alert("Error al regenerar: " + e.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+window.subirArchivoTramite = async function(input, tipo) {
+    if (!input.files || input.files.length === 0) return;
+    
+    const tramiteId = document.getElementById('current_tramite_id').value;
+    const file = input.files[0];
+    const statusEl = document.getElementById(`status-${tipo}`);
+    
+    statusEl.textContent = 'SUBIENDO...';
+    statusEl.style.color = 'var(--primary)';
+    
+    const formData = new FormData();
+    formData.append('archivo', file);
+    formData.append('tipo', tipo);
+    
+    try {
+        const response = await fetch(`${window.api.baseUrl}/tramites/${tramiteId}/subir-documento`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${window.api.getToken()}`
+            },
+            body: formData
+        });
+        
+        if (!response.ok) throw new Error("Error en la subida");
+        
+        const data = await response.json();
+        alert(`¡Documento ${tipo} subido con éxito!`);
+        
+        // Refresh modal UI
+        window.gestionTraspaso(data);
+        
+    } catch (e) {
+        alert("Error al subir documento: " + e.message);
+        statusEl.textContent = 'FALLIDO';
+        statusEl.style.color = 'var(--error)';
+    } finally {
+        input.value = ''; // Reset input
+    }
+};
 
 window.iniciarNuevoTramite = function(motoId) {
     document.getElementById('checkMotoId').value = motoId;

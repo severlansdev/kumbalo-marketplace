@@ -9,6 +9,8 @@ import os
 from typing import Optional, Tuple
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 
 app = FastAPI(
     title="KUMBALO API",
@@ -75,12 +77,16 @@ def sync_db_schema(engine, models, SessionLocal, pwd_context) -> Tuple[bool, Opt
             "motos": [
                 ("commission_fee", "FLOAT DEFAULT 0.0"),
                 ("commission_type", "VARCHAR(20) DEFAULT 'fixed'"),
-                ("commission_paid", "BOOLEAN DEFAULT FALSE")
+                ("commission_paid", "BOOLEAN DEFAULT FALSE"),
+                ("placa", "VARCHAR(10)"),
+                ("nro_motor", "VARCHAR(50)"),
+                ("nro_chasis", "VARCHAR(50)")
             ],
             "usuarios": [
                 ("telefono", "VARCHAR(20)"),
                 ("rol", "VARCHAR(20) DEFAULT 'usuario'"),
-                ("tipo_cuenta", "VARCHAR(20) DEFAULT 'natural'")
+                ("tipo_cuenta", "VARCHAR(20) DEFAULT 'natural'"),
+                ("cedula", "VARCHAR(20)")
             ]
         }
 
@@ -120,7 +126,7 @@ def sync_db_schema(engine, models, SessionLocal, pwd_context) -> Tuple[bool, Opt
         return True, None
     except Exception as e:
         error_msg = str(e)
-        print(f"❌ [SYNC_ERROR] {error_msg}")
+        print(f"[SYNC_ERROR] {error_msg}")
         return False, error_msg
 
 @app.on_event("startup")
@@ -132,24 +138,25 @@ def on_startup():
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         sync_db_schema(engine, models, SessionLocal, pwd_context)
     except ImportError:
-        print("⚠️ [WARN] Passlib/Bcrypt not found. Admin setup skipped.")
+        print("[WARN] Passlib/Bcrypt not found. Admin setup skipped.")
         return
 
-# --- Hardened CORS ---
+# --- Hardened CORS (Hacker Guardian Lockdown) ---
 allowed_origins = [
-    "*", # Keep asterisk for now during dev, but prepared for lockdown
     "http://localhost:3000",
+    "http://localhost:8000",
     "https://kumbalo.com",
     "https://www.kumbalo.com",
-    "https://kumbalo-marketplace.vercel.app"
+    "https://kumbalo-marketplace.vercel.app",
+    "https://kumbalo-api.vercel.app"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With", "Accept"],
 )
 
 # --- Logging middleware ---
@@ -175,7 +182,7 @@ except Exception as e:
 
 @app.get("/")
 def read_root():
-    return {"message": "🚀 Bienvenido al API del Marketplace de Motos (Fullstack Edition)"}
+    return {"message": "Bienvenido al API del Marketplace de Motos (Fullstack Edition)"}
 
 @app.get("/api/health")
 @app.get("/health")
@@ -250,3 +257,11 @@ try:
     app.include_router(analytics.router, prefix="/api", tags=["Market Intelligence"])
 except Exception as e:
     print(f"[WARN] Could not load analytics router: {e}")
+
+# --- Frontend Serving (Static Files) ---
+# Se monta al final para que no interfiera con las rutas de /api
+frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+if os.path.exists(frontend_path):
+    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
+else:
+    print(f"⚠️ [WARN] Frontend directory not found at {frontend_path}")

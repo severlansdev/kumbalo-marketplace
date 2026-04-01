@@ -474,6 +474,87 @@
         </div>
     </div>
 
+    <!-- Documentos Trámite Modal -->
+    <div id="documentosTramiteModal" class="modal">
+        <div class="modal-content brand-modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 class="modal-title" style="text-align: left; margin: 0;">Expediente Digital de Traspaso</h2>
+                <button onclick="document.getElementById('documentosTramiteModal').style.display='none'" class="modal-close">&times;</button>
+            </div>
+            <p class="modal-subtitle" style="text-align: left; margin-bottom: 1.5rem;">Carga los documentos requeridos para radicar el trámite físicamente en el SIM/VUM.</p>
+            
+            <input type="hidden" id="current_tramite_id">
+            
+            <div id="docs-upload-container" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Items de carga de documentos -->
+                <div class="doc-upload-item" data-tipo="cedula_vendedor" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color:#fff; font-size:0.9rem;">Cédula Vendedor (Original Escaneada)</span>
+                        <span class="doc-status" id="status-cedula_vendedor" style="font-size:0.7rem; color:#888; font-weight:bold; background:rgba(0,0,0,0.3); padding:4px 10px; border-radius:20px;">Pendiente</span>
+                    </div>
+                    <div class="upload-control" style="margin-top:10px; display:flex; gap:10px;">
+                        <input type="file" class="doc-file-input" style="display:none;" onchange="subirArchivoTramite(this, 'cedula_vendedor')">
+                        <button onclick="this.previousElementSibling.click()" class="btn btn-outline" style="flex:1; font-size:0.75rem; padding:8px;">Seleccionar Archivo</button>
+                        <a href="#" target="_blank" id="view-cedula_vendedor" class="btn btn-success btn-view-doc" style="display:none; padding:8px 15px; background:#10b981; border:none; color:white; border-radius:8px; align-items:center; justify-content:center; text-decoration:none;">👁️ Ver</a>
+                    </div>
+                </div>
+
+                <div class="doc-upload-item" data-tipo="cedula_comprador" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color:#fff; font-size:0.9rem;">Cédula Comprador (Original Escaneada)</span>
+                        <span class="doc-status" id="status-cedula_comprador" style="font-size:0.7rem; color:#888; font-weight:bold; background:rgba(0,0,0,0.3); padding:4px 10px; border-radius:20px;">Pendiente</span>
+                    </div>
+                    <div class="upload-control" style="margin-top:10px; display:flex; gap:10px;">
+                        <input type="file" class="doc-file-input" style="display:none;" onchange="subirArchivoTramite(this, 'cedula_comprador')">
+                        <button onclick="this.previousElementSibling.click()" class="btn btn-outline" style="flex:1; font-size:0.75rem; padding:8px;">Seleccionar Archivo</button>
+                        <a href="#" target="_blank" id="view-cedula_comprador" class="btn btn-success btn-view-doc" style="display:none; padding:8px 15px; background:#10b981; border:none; color:white; border-radius:8px; align-items:center; justify-content:center; text-decoration:none;">👁️ Ver</a>
+                    </div>
+                </div>
+
+                <div class="doc-upload-item" data-tipo="contrato" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color:#fff; font-size:0.9rem;">Contrato de Compraventa</span>
+                        <span class="doc-status" id="status-contrato" style="font-size:0.7rem; color:#888; font-weight:bold; background:rgba(0,0,0,0.3); padding:4px 10px; border-radius:20px;">Pendiente</span>
+                    </div>
+                    <div class="upload-control" style="margin-top:10px; display:flex; gap:10px;">
+                        <input type="file" class="doc-file-input" style="display:none;" onchange="subirArchivoTramite(this, 'contrato')">
+                        <button onclick="this.previousElementSibling.click()" class="btn btn-outline" style="flex:1; font-size:0.75rem; padding:8px;">Seleccionar Archivo</button>
+                        <a href="#" target="_blank" id="view-contrato" class="btn btn-success btn-view-doc" style="display:none; padding:8px 15px; background:#10b981; border:none; color:white; border-radius:8px; align-items:center; justify-content:center; text-decoration:none;">👁️ Ver</a>
+                    </div>
+                </div>
+
+                <div class="doc-upload-item" data-tipo="poder" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color:#fff; font-size:0.9rem;">Poder Especial Autenticado</span>
+                        <span class="doc-status" id="status-poder" style="font-size:0.7rem; color:#888; font-weight:bold; background:rgba(0,0,0,0.3); padding:4px 10px; border-radius:20px;">Pendiente</span>
+                    </div>
+                    <div class="upload-control" style="margin-top:10px; display:flex; gap:10px;">
+                        <input type="file" class="doc-file-input" style="display:none;" onchange="subirArchivoTramite(this, 'poder')">
+                        <button onclick="this.previousElementSibling.click()" class="btn btn-outline" style="flex:1; font-size:0.75rem; padding:8px;">Seleccionar Archivo</button>
+                        <a href="#" target="_blank" id="view-poder" class="btn btn-success btn-view-doc" style="display:none; padding:8px 15px; background:#10b981; border:none; color:white; border-radius:8px; align-items:center; justify-content:center; text-decoration:none;">👁️ Ver</a>
+                    </div>
+                </div>
+
+                <div class="doc-upload-item" data-tipo="fun" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color:#fff; font-size:0.9rem;">FUN con Improntas</span>
+                        <span class="doc-status" id="status-fun" style="font-size:0.7rem; color:#888; font-weight:bold; background:rgba(0,0,0,0.3); padding:4px 10px; border-radius:20px;">Pendiente</span>
+                    </div>
+                    <div class="upload-control" style="margin-top:10px; display:flex; gap:10px;">
+                        <input type="file" class="doc-file-input" style="display:none;" onchange="subirArchivoTramite(this, 'fun')">
+                        <button onclick="this.previousElementSibling.click()" class="btn btn-outline" style="flex:1; font-size:0.75rem; padding:8px;">Seleccionar Archivo</button>
+                        <a href="#" target="_blank" id="view-fun" class="btn btn-success btn-view-doc" style="display:none; padding:8px 15px; background:#10b981; border:none; color:white; border-radius:8px; align-items:center; justify-content:center; text-decoration:none;">👁️ Ver</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                <p style="font-size: 0.75rem; color: #888; margin-bottom: 15px; text-align: center;">El equipo de Kumbalo revisará los documentos originales. El estado cambiará a 'Verificado' una vez aprobados.</p>
+                <button onclick="document.getElementById('documentosTramiteModal').style.display='none'" class="btn btn-primary btn-block">Cerrar Expediente</button>
+            </div>
+        </div>
+    </div>
+
     <!-- App Scripts -->
     <script src="js/theme.js"></script>
     <script src="js/sanitizer.js"></script>

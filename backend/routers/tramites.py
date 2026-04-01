@@ -2,12 +2,15 @@
 Router de Trámites - Gestión de procesos legales y burocráticos de Kumbalo.
 Incluye el flujo de Traspaso Express con integración de pasarela de pago.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from typing import List
+import json
 from .. import models, schemas
 from ..database import get_db
 from .auth import get_current_user
+from ..aws_s3 import upload_image_to_s3
+from ..utils.contract_generator import generate_purchase_contract
 import mercadopago
 import os
 
@@ -119,6 +122,12 @@ async def solicitar_tramite(
         # Inyectar el init_point para el frontend (Pydantic lo mapeará a pago_url)
         setattr(nuevo_tramite, 'pago_url', preference["init_point"])
         
+        # 3. GENERACIÓN AUTOMÁTICA DE CONTRATO (Borrador inicial)
+        try:
+            await _generar_y_subir_contrato(nuevo_tramite, db)
+        except Exception as e:
+            print(f"Error generando contrato inicial: {e}")
+            
         return nuevo_tramite
     except HTTPException:
         raise
@@ -151,3 +160,133 @@ async def get_tramite_detalle(
         raise HTTPException(status_code=403, detail="No tienes acceso a este trámite")
     
     return tramite
+
+
+@router.post("/{tramite_id}/subir-documento", response_model=schemas.TramiteResponse)
+async def subir_documento_tramite(
+    tramite_id: int,
+    tipo: str = Form(...), # contrato, poder, fun, cedula_comprador, cedula_vendedor
+    archivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.Usuario = Depends(get_current_user)
+):
+    """
+    Sube un documento legal para el trámite a AWS S3.
+    Actualiza el campo `documentos_json` del trámite.
+    """
+    from datetime import datetime
+    
+    tramite = db.query(models.Tramite).filter(models.Tramite.id == tramite_id).first()
+    if not tramite:
+        raise HTTPException(status_code=404, detail="Trámite no encontrado")
+    
+    # Validar que el usuario sea parte del trámite (comprador o vendedor)
+    if current_user.id not in [tramite.comprador_id, tramite.vendedor_id] and current_user.rol != "admin":
+        raise HTTPException(status_code=403, detail="No tienes permiso para subir documentos a este trámite")
+
+    # Subir a S3 usando la utilidad centralizada
+    try:
+        content_type = archivo.content_type or "application/octet-stream"
+        url_s3 = upload_image_to_s3(archivo.file, archivo.filename, content_type)
+        
+        # Actualizar JSON de documentos
+        docs_dict = {}
+        if tramite.documentos_json:
+            try:
+                docs_dict = json.loads(tramite.documentos_json)
+            except:
+                docs_dict = {}
+        
+        docs_dict[tipo] = {
+            "url": url_s3,
+            "subido_por": current_user.nombre,
+            "fecha": datetime.now().isoformat()
+        }
+        
+        tramite.documentos_json = json.dumps(docs_dict)
+        
+        # Si ya se subieron los documentos clave, avanzar el estado
+        claves = ["contrato", "poder", "fun", "cedula_comprador", "cedula_vendedor"]
+        if all(k in docs_dict for k in claves) and tramite.estado == "documentos_pendientes":
+            tramite.estado = "verificado_kumbalo"
+            tramite.notas = f"Todos los documentos críticos han sido cargados. Pendiente verificación humana."
+
+        db.commit()
+        db.refresh(tramite)
+        return tramite
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error subiendo el documento: {str(e)}")
+
+
+@router.patch("/{tramite_id}/estado", response_model=schemas.TramiteResponse)
+async def actualizar_estado_tramite(
+    tramite_id: int,
+    nuevo_estado: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.Usuario = Depends(get_current_user)
+):
+    """
+    Permite a un administrador o gestor actualizar el estado del flujo.
+    """
+    if current_user.rol != "admin":
+        raise HTTPException(status_code=403, detail="Solo administradores pueden cambiar el estado manualmente")
+
+    tramite = db.query(models.Tramite).filter(models.Tramite.id == tramite_id).first()
+    if not tramite:
+        raise HTTPException(status_code=404, detail="Trámite no encontrado")
+
+    tramite.estado = nuevo_estado
+    db.commit()
+    db.refresh(tramite)
+    return tramite
+
+
+@router.post("/{tramite_id}/generar-contrato", response_model=schemas.TramiteResponse)
+async def regenerar_contrato_tramite(
+    tramite_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.Usuario = Depends(get_current_user)
+):
+    """
+    Forzar la regeneración del contrato PDF con los datos actuales del perfil.
+    Útil si el usuario actualizó su cédula o teléfono después de solicitar el trámite.
+    """
+    tramite = db.query(models.Tramite).filter(models.Tramite.id == tramite_id).first()
+    if not tramite:
+        raise HTTPException(status_code=404, detail="Trámite no encontrado")
+    
+    if current_user.id not in [tramite.comprador_id, tramite.vendedor_id] and current_user.rol != "admin":
+        raise HTTPException(status_code=403, detail="No tienes acceso a este trámite")
+
+    await _generar_y_subir_contrato(tramite, db)
+    return tramite
+
+
+async def _generar_y_subir_contrato(tramite: models.Tramite, db: Session):
+    """Helper interno para generar PDF y subir a S3"""
+    from datetime import datetime
+    
+    pdf_buffer = generate_purchase_contract(tramite)
+    filename = f"contrato-compraventa-{tramite.id}.pdf"
+    
+    url_s3 = upload_image_to_s3(pdf_buffer, filename, "application/pdf")
+    
+    # Actualizar documentos_json
+    docs_dict = {}
+    if tramite.documentos_json:
+        try:
+            docs_dict = json.loads(tramite.documentos_json)
+        except:
+            docs_dict = {}
+            
+    docs_dict["contrato"] = {
+        "url": url_s3,
+        "subido_por": "SISTEMA_KUMBALO",
+        "fecha": datetime.now().isoformat(),
+        "es_borrador_auto": True
+    }
+    
+    tramite.documentos_json = json.dumps(docs_dict)
+    db.commit()
+    db.refresh(tramite)

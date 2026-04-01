@@ -75,3 +75,7 @@ def upload_image_to_s3(file_obj, filename: str, content_type: str) -> str:
 
 def upload_image_to_s3_local(file_obj, filename: str) -> str:
     return upload_image_to_s3(file_obj, filename, "image/jpeg")
+
+def upload_pdf_to_s3(file_obj, filename: str) -> str:
+    """Sube un documento legal PDF a S3 con el ContentType correcto."""
+    return upload_image_to_s3(file_obj, filename, "application/pdf")

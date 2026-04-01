@@ -103,7 +103,27 @@
     --z-toast: 1080;
 
     /* Focus Ring */
-    --focus-ring: 0 0 0 3px rgba(230, 57, 70, 0.4);
+    --focus-ring: 0 0 0 3px rgba(255, 40, 0, 0.4);
+    
+    /* Premium Tokens */
+    --glass-bg: rgba(20, 20, 20, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(20px);
+}
+
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-light {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Dark Theme Override Removed - Native Dark Mode Active */
@@ -125,10 +145,21 @@ body {
     0% {
         background-position: -200% 0;
     }
-
     100% {
         background-position: 200% 0;
     }
+}
+
+/* Progress Bar */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--brand-gradient-cta);
+    z-index: 9999;
+    border-radius: 0 2px 2px 0;
+    box-shadow: var(--brand-shadow-glow);
 }
 
 .skeleton-text {
@@ -289,16 +320,34 @@ img {
 }
 
 .btn-primary {
-    background: var(--primary);
+    background: var(--brand-gradient-cta);
     color: var(--white);
-    border-color: var(--primary);
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 40, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    transform: rotate(45deg);
+    transition: 0.5s;
+    transition-delay: 0.1s;
+}
+
+.btn-primary:hover::after {
+    left: 100%;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: var(--primary-dark);
-    border-color: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(255, 40, 0, 0.5);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -345,9 +394,10 @@ img {
 }
 
 .header.scrolled {
-    background: rgba(20, 20, 20, 0.95);
-    backdrop-filter: blur(10px);
-    box-shadow: var(--shadow-md);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: var(--brand-shadow-md);
 }
 
 .nav {
@@ -570,16 +620,17 @@ img {
 }
 
 .search-form {
-    background: var(--brand-surface);
+    background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
-    padding: 2rem;
-    border-radius: 24px;
-    box-shadow: var(--brand-shadow-elevated);
+    -webkit-backdrop-filter: var(--glass-blur);
+    padding: 2.5rem;
+    border-radius: 28px;
+    box-shadow: var(--glass-shadow);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto;
     gap: 1.5rem;
     align-items: end;
-    border: 1px solid var(--brand-border);
+    border: 1px solid var(--glass-border);
 }
 
 
@@ -669,17 +720,33 @@ img {
 }
 
 .listing-card {
-    background: var(--secondary);
-    border-radius: var(--radius-xl);
+    background: var(--brand-card);
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: var(--shadow-md);
-    transition: var(--transition-normal);
-    cursor: pointer;
+    border: 1px solid var(--brand-border);
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: var(--brand-shadow-sm);
+    position: relative;
+}
+
+.listing-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent, rgba(255,40,0,0.1));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
 }
 
 .listing-card:hover {
-    transform: translateY(-10px);
-    box-shadow: var(--shadow-xl);
+    transform: translateY(-12px) scale(1.01);
+    border-color: var(--brand-primary);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
 .listing-image {

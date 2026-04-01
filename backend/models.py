@@ -32,6 +32,7 @@ class Usuario(Base):
     is_pro = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+    cedula = Column(String(20), nullable=True)
     bio = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -61,6 +62,11 @@ class Moto(Base):
     is_hot = Column(Boolean, default=False)
     views_count = Column(Integer, default=0)
     contactos_count = Column(Integer, default=0)
+    
+    # Datos técnicos legales
+    placa = Column(String(10), nullable=True)
+    nro_motor = Column(String(50), nullable=True)
+    nro_chasis = Column(String(50), nullable=True)
     
     # Tarifas de Comisión Kumbalo
     commission_fee = Column(Float, default=0.0)
