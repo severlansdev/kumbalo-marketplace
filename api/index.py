@@ -48,11 +48,13 @@ try:
     from backend import models
     from passlib.context import CryptContext
     
-    # Ejecutar sicronización de BD (Parche de esquema para Traspaso Express)
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    success, error_msg = sync_db_schema(engine, models, SessionLocal, pwd_context)
-    app.state.sync_status = "SUCCESS" if success else "FAILED"
-    app.state.sync_error = error_msg
+    # Ejecutar sincronización de BD (Cachear resultado para evitar retraso)
+    if not getattr(app.state, 'db_synced', False):
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        success, error_msg = sync_db_schema(engine, models, SessionLocal, pwd_context)
+        app.state.sync_status = "SUCCESS" if success else "FAILED"
+        app.state.db_synced = success
+        app.state.sync_error = error_msg
     
     app.include_router(auth.router, prefix="/api")
     app.include_router(motos.router, prefix="/api")
