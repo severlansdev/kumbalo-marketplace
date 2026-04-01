@@ -470,40 +470,10 @@ const mobileMenu = {
 // ============================================
 // SEARCH FORM - Smooth interactions
 // ============================================
+// Se eliminó la lógica duplicada de búsqueda de main.js para evitar conflictos con index.js
 const searchForm = {
     init() {
-        const form = document.querySelector('.search-form');
-        if (!form) return;
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            // Animate form on submit
-            gsap.to(this, {
-                duration: 0.3,
-                scale: 0.98,
-                ease: 'power2.out',
-                onComplete: () => {
-                    gsap.to(this, {
-                        duration: 0.3,
-                        scale: 1,
-                        ease: 'elastic.out(1, 0.3)'
-                    });
-                }
-            });
-
-            const params = new URLSearchParams();
-            const marca = this.querySelector('#marca').value;
-            const modelo = this.querySelector('#modelo').value;
-            const precio = this.querySelector('#precio').value;
-
-            if (marca) params.append('marca', marca);
-            if (modelo) params.append('modelo', modelo);
-            if (precio) params.append('precio', precio);
-
-            window.location.href = '#catalogo?' + params.toString();
-            showNotification('Buscando motos disponibles...', 'info');
-        });
+        console.log("Search engine managed by index.js/catalogo.js (Synergy Active)");
     }
 };
 
