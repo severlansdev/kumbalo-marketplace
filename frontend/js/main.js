@@ -158,7 +158,7 @@ const animations = {
                     trigger: card,
                     start: 'top 85%',
                     end: 'top 60%',
-                    toggleActions: 'play none none reverse'
+                    toggleActions: 'play none none none'
                 }
             });
 
@@ -188,7 +188,7 @@ const animations = {
                 scrollTrigger: {
                     trigger: card,
                     start: 'top 85%',
-                    toggleActions: 'play none none reverse'
+                    toggleActions: 'play none none none'
                 },
                 duration: 1.2,
                 y: 80,
@@ -217,7 +217,7 @@ const animations = {
                 trigger: '.cta',
                 start: 'top 80%',
                 end: 'top 60%',
-                toggleActions: 'play none none reverse'
+                toggleActions: 'play none none none'
             }
         });
 
@@ -249,7 +249,7 @@ const animations = {
             scrollTrigger: {
                 trigger: '.contact',
                 start: 'top 75%',
-                toggleActions: 'play none none reverse'
+                toggleActions: 'play none none none'
             }
         });
 
@@ -302,7 +302,7 @@ const animations = {
                 scrollTrigger: {
                     trigger: title,
                     start: 'top 80%',
-                    toggleActions: 'play none none reverse'
+                    toggleActions: 'play none none none'
                 },
                 duration: 1,
                 y: 100,
