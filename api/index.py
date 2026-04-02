@@ -9,6 +9,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Crear la aplicación directamente en este archivo (Vercel lo requiere así para máxima compatibilidad)
 app = FastAPI(title="KUMBALO API - Vercel Native")
 
+# 🔒 HACKER GUARDIAN: Validación Pre-Flight de Arquitectura Cloud
+critical_vars = ["DATABASE_URL", "JWT_SECRET", "MERCADOPAGO_ACCESS_TOKEN"]
+missing_vars = [var for var in critical_vars if not os.getenv(var)]
+if missing_vars:
+    print(f"⚠️ [WARNING] Faltan variables de entorno críticas en Vercel/Render: {missing_vars}")
+    # Nota: No crasheamos la API para permitir visualizar la UI, pero se emitirá advertencia en log.
+
 # CORS Hardened (Hacker Guardian - Sincronizado con main.py)
 allowed_origins = [
     "http://localhost:3000",

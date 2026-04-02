@@ -1,10 +1,12 @@
 import mercadopago
 import os
+import os
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
 from .auth import get_current_user
+from ..utils import email_agent
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -149,5 +151,11 @@ async def mercadopago_webhook(request: Request, db: Session = Depends(get_db)):
                         )
                         db.add(nueva_notif)
                         db.commit()
+                        
+                        # Disparar alerta transaccional por Email
+                        email_agent.notify_traspaso_pagado(
+                            comprador_email=tramite.comprador.email,
+                            tramite_id=tramite.id
+                        )
                 
     return {"status": "ok"}

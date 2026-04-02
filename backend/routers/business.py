@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from .. import models
 from ..database import get_db
 from .auth import get_current_user
+from ..utils import email_agent
 
 router = APIRouter(prefix="/business", tags=["business", "monetization"])
 
@@ -159,8 +160,12 @@ def realizar_puja(subasta_id: int, req: PujaCreate, db: Session = Depends(get_db
     
     db.commit()
     
-    # Aquí podríamos inyectar una señal por WebSocket si tenemos Redis o un Broadcaster simple
-    # Ejemplo: broadcast({"type": "nueva_puja", "subasta_id": subasta.id, "monto": subasta.mejor_oferta})
+    # Notificación Transaccional
+    email_agent.notify_nueva_puja(
+        vendedor_email=subasta.vendedor.email,
+        marca=f"{subasta.moto.marca} {subasta.moto.modelo}",
+        monto=req.monto
+    )
     
     return {"status": "success", "message": "Puja registrada exitosamente", "nueva_oferta": subasta.mejor_oferta, "fecha_fin": subasta.fecha_fin}
 
@@ -240,12 +245,22 @@ def responder_permuta(permuta_id: int, accion: str, db: Session = Depends(get_db
     if accion == "rechazar":
         permuta.estado = "rechazada"
         db.commit()
+        email_agent.notify_estado_permuta(
+            receptor_email=permuta.oferente.email,
+            moto_ofrecida=f"{permuta.moto_ofrecida.marca} {permuta.moto_ofrecida.modelo}",
+            moto_objetivo=f"{permuta.moto_objetivo.marca} {permuta.moto_objetivo.modelo}",
+            estado="rechazada"
+        )
         return {"status": "success", "message": "Oferta rechazada."}
         
     if accion == "aceptar":
         permuta.estado = "aceptada"
-        # Aquí se inicia el Double Escrow:
-        # Se crearían 2 Trámites (Traspaso de Moto A a Receptor) y (Traspaso de Moto B a Oferente).
-        # Esto bloquea temporalmente el inventario involucrado.
+        # Aquí se inicia el Double Escrow
         db.commit()
+        email_agent.notify_estado_permuta(
+            receptor_email=permuta.oferente.email,
+            moto_ofrecida=f"{permuta.moto_ofrecida.marca} {permuta.moto_ofrecida.modelo}",
+            moto_objetivo=f"{permuta.moto_objetivo.marca} {permuta.moto_objetivo.modelo}",
+            estado="aceptada"
+        )
         return {"status": "success", "message": "¡Oferta Aceptada! Iniciando Traspaso Dual."}
