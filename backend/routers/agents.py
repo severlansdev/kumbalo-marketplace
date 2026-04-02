@@ -35,7 +35,7 @@ async def get_agents_status():
         # --- Business & Finance ---
         {"name": "/fintech_executive", "status": "MercadoPago Audit", "category": "Finance"},
         {"name": "/business_strategy", "status": "Monetization", "category": "Strategy"},
-        {"name": "/legal_compliance", "status": "Audit Notarial", "category": "Legal"},
+        {"name": "/mintic_lawyer", "status": "Audit. Ley 1581/GDPR", "category": "Legal"},
         {"name": "/partnerships", "status": "B2B Deal Hunt", "category": "Affiliates"},
         
         # --- Intelligence & Support ---

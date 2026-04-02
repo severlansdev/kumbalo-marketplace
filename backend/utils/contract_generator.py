@@ -118,6 +118,13 @@ def generate_purchase_contract(tramite: Tramite) -> BytesIO:
     pdf.cell(0, 8, '3. ESTADO LEGAL Y TRADICIÓN', 0, 1)
     pdf.set_font('helvetica', '', 10)
     pdf.multi_cell(0, 5, "EL VENDEDOR garantiza que el vehículo es de su exclusiva propiedad y se encuentra libre de gravámenes, embargos y multas. EL COMPRADOR acepta el estado del vehículo basado en la revisión de ADN Kumbalo realizada previamente.")
+    pdf.ln(5)
+
+    # Cláusula 4: Sello MINTIC - Ley 527 y Double Escrow
+    pdf.set_font('helvetica', 'B', 11)
+    pdf.cell(0, 8, '4. JURISDICCIÓN ELECTRÓNICA Y DOUBLE ESCROW (MINTIC LAWS)', 0, 1)
+    pdf.set_font('helvetica', '', 10)
+    pdf.multi_cell(0, 5, "Las partes acuerdan, bajo el marco de la Ley 527 de 1999 y Ley 1581 de 2012, que los fondos producto de la operación transitarán mediante un fideicomiso (Double Escrow). La ejecución de este contrato equivale a firma electrónica verificada, obligando civilmente al cumplimiento del traspaso tras la validación automática en bases de datos (RUNT/SIMIT) orquestada por la Plataforma.")
     
     # Firmas
     pdf.ln(25)
