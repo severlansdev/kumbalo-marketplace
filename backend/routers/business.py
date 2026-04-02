@@ -97,3 +97,69 @@ def crear_subasta(req: SubastaCreate, db: Session = Depends(get_db), current_use
     db.refresh(nueva_subasta)
     
     return {"status": "success", "message": f"Subasta iniciada. Finaliza en {req.duracion_horas} horas.", "subasta_id": nueva_subasta.id}
+
+
+class PujaCreate(BaseModel):
+    monto: float
+
+@router.get("/subastas/activas")
+def listar_subastas(db: Session = Depends(get_db)):
+    """Retorna las subastas activas (para visualización del Concesionario)"""
+    # Solo traemos activas y en tiempo
+    subastas = db.query(models.SubastaMoto).filter(
+        models.SubastaMoto.estado == "activa",
+        models.SubastaMoto.fecha_fin > datetime.now()
+    ).all()
+    
+    resultados = []
+    for s in subastas:
+        resultados.append({
+            "id": s.id,
+            "moto": f"{s.moto.marca} {s.moto.modelo} ({s.moto.año})",
+            "moto_id": s.moto_id,
+            "precio_minimo": s.precio_minimo,
+            "mejor_oferta": s.mejor_oferta,
+            "fecha_fin": s.fecha_fin,
+            "image_url": s.moto.image_url
+        })
+    return resultados
+
+
+@router.post("/subastas/{subasta_id}/pujar")
+def realizar_puja(subasta_id: int, req: PujaCreate, db: Session = Depends(get_db), current_user: models.Usuario = Depends(get_current_user)):
+    """Permite enviar una puja a una subasta específica"""
+    subasta = db.query(models.SubastaMoto).filter(models.SubastaMoto.id == subasta_id).first()
+    if not subasta:
+        raise HTTPException(status_code=404, detail="Subasta no encontrada")
+    
+    if subasta.estado != "activa" or subasta.fecha_fin < datetime.now():
+        raise HTTPException(status_code=400, detail="Esta subasta ha cerrado")
+        
+    if current_user.id == subasta.vendedor_id:
+        raise HTTPException(status_code=400, detail="No puedes pujar por tu propia moto")
+        
+    if req.monto <= subasta.mejor_oferta:
+        raise HTTPException(status_code=400, detail=f"La puja debe ser mayor a la mejor oferta actual (${subasta.mejor_oferta})")
+
+    # Anti-Sniping Protection (Añade 2 min si quedan menos de 2 min)
+    if (subasta.fecha_fin - datetime.now()).total_seconds() < 120:
+        subasta.fecha_fin = subasta.fecha_fin + timedelta(minutes=2)
+
+    # Registrar Puja
+    nueva_puja = models.HistorialPuja(
+        subasta_id=subasta_id,
+        postor_id=current_user.id,
+        monto=req.monto
+    )
+    db.add(nueva_puja)
+    
+    # Actualizar Subasta
+    subasta.mejor_oferta = req.monto
+    subasta.concesionario_ganador_id = current_user.id
+    
+    db.commit()
+    
+    # Aquí podríamos inyectar una señal por WebSocket si tenemos Redis o un Broadcaster simple
+    # Ejemplo: broadcast({"type": "nueva_puja", "subasta_id": subasta.id, "monto": subasta.mejor_oferta})
+    
+    return {"status": "success", "message": "Puja registrada exitosamente", "nueva_oferta": subasta.mejor_oferta, "fecha_fin": subasta.fecha_fin}

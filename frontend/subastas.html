@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sala VIP de Subastas | KUMBALO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/brand.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        .auction-room {
+            min-height: 100vh;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            color: #fff;
+            padding-top: 100px;
+        }
+        .live-badge {
+            background-color: var(--primary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            animation: pulse-red 2s infinite;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 40, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 40, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 40, 0, 0); }
+        }
+        .auction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+        .auction-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .auction-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+        .auction-img {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+            border-bottom: 2px solid var(--primary);
+        }
+        .auction-info {
+            padding: 1.5rem;
+        }
+        .timer {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            color: #fff;
+            text-align: center;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .bid-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .bid-input {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="container nav">
+            <a href="index.html" class="logo">
+                <span class="logo-icon brand-logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 2L44 14V34L24 46L4 34V14Z" fill="#FF2800"/>
+                        <path d="M24 6L40 16V32L24 42L8 32V16Z" fill="#0A0A0A"/>
+                        <path d="M16 14V34H21V27L28 34H35L26 25L34 14H27L21 23V14Z" fill="#FF2800"/>
+                    </svg>
+                </span>
+                <span class="logo-text">KUMBALO</span>
+            </a>
+            <div class="nav-buttons">
+                <a href="dashboard.html" class="btn btn-outline" style="border-radius: 20px;">Mi Garaje</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="auction-room">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <span class="live-badge">● LIVE BIDS ROOM</span>
+                <h1 style="font-family: var(--font-family-display); font-size: 3rem; margin-top: 1rem;">Club Privado de Subastas</h1>
+                <p style="color: var(--gray); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Adquiere inventario liquidado en tiempo real. Exclusivo para concesionarios verificados Kumbalo PRO.</p>
+            </div>
+
+            <div class="auction-grid" id="auctionsContainer">
+                <div style="grid-column: 1/-1; text-align:center; padding: 50px;">
+                    <h3 style="color: #888;">No hay subastas activas en este momento.</h3>
+                    <p style="color: #666;">Las subastas aparecen aquí en tiempo real cuando un vendedor requiere liquidez inmediata.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!window.api.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Verify they are a dealership or have pro access? We assume PRO/dealer.
+            loadAuctions();
+            
+            // Polling simulating WebSockets for active bids (Real WebSocket can enhance this)
+            setInterval(loadAuctions, 5000);
+        });
+
+        async function loadAuctions() {
+            try {
+                const subastas = await window.api.request('/v1/business/subastas/activas', {
+                    method: 'GET',
+                    headers: window.api.getHeaders()
+                });
+
+                const container = document.getElementById('auctionsContainer');
+                
+                if(subastas.length > 0) {
+                    container.innerHTML = '';
+                    subastas.forEach(subasta => {
+                        const endTime = new Date(subasta.fecha_fin).getTime();
+                        
+                        const card = document.createElement('div');
+                        card.className = 'auction-card';
+                        
+                        const currentBid = subasta.mejor_oferta > 0 ? subasta.mejor_oferta : subasta.precio_minimo;
+                        const formattedBid = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(currentBid);
+                        const nextBid = currentBid + 500000;
+
+                        card.innerHTML = `
+                            <img src="${subasta.image_url || 'https://images.unsplash.com/photo-1558363196-03c03ec34190?w=500'}" class="auction-img">
+                            <div class="auction-info">
+                                <h3 style="margin-bottom: 5px;">${subasta.moto}</h3>
+                                <p style="color:var(--gray); font-size:0.8rem; margin-bottom: 15px;">ID Subasta: #${subasta.id}</p>
+                                
+                                <div class="timer" data-endtime="${endTime}">
+                                    00:00:00
+                                </div>
+                                
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 10px;">
+                                    <span style="color:var(--gray); font-size:0.9rem;">Mejor Oferta:</span>
+                                    <span style="color:var(--primary); font-size:1.5rem; font-weight:bold;">${formattedBid}</span>
+                                </div>
+                                
+                                <div class="bid-controls">
+                                    <input type="number" id="bid_${subasta.id}" class="bid-input" value="${nextBid}" step="100000">
+                                    <button onclick="placeBid(${subasta.id})" class="btn btn-primary" style="padding: 10px 20px;">Pujar</button>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                    initTimers();
+                }
+
+            } catch (e) {
+                console.error("Error cargando subastas:", e);
+            }
+        }
+
+        async function placeBid(subastaId) {
+            const input = document.getElementById(`bid_${subastaId}`);
+            const monto = parseFloat(input.value);
+            
+            try {
+                const res = await window.api.request(`/v1/business/subastas/${subastaId}/pujar`, {
+                    method: 'POST',
+                    headers: window.api.getHeaders(),
+                    body: JSON.stringify({ monto })
+                });
+                
+                // Visual feedback
+                gsap.fromTo(input.parentElement.parentElement, 
+                    { backgroundColor: 'rgba(255,40,0,0.3)' }, 
+                    { backgroundColor: 'transparent', duration: 1 }
+                );
+                
+                loadAuctions();
+            } catch (e) {
+                alert(`Error al pujar: ${e.message}`);
+                loadAuctions(); // Refresh to catch latest price
+            }
+        }
+
+        function initTimers() {
+            document.querySelectorAll('.timer').forEach(el => {
+                const end = parseInt(el.getAttribute('data-endtime'));
+                updateTimer(el, end);
+            });
+        }
+
+        function updateTimer(el, end) {
+            const now = new Date().getTime();
+            const distance = end - now;
+
+            if (distance < 0) {
+                el.innerHTML = "CERRADA";
+                el.style.color = "var(--error)";
+                return;
+            }
+
+            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+            el.innerHTML = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            
+            if(distance < 120000) { // Si falta menos de 2 mins, texto rojo alertado
+                el.style.color = "var(--primary)";
+            }
+        }
+
+        setInterval(initTimers, 1000);
+    </script>
+</body>
+</html>

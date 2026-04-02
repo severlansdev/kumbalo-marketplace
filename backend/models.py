@@ -259,3 +259,17 @@ class SubastaMoto(Base):
     moto = relationship("Moto")
     vendedor = relationship("Usuario", foreign_keys=[vendedor_id])
     ganador = relationship("Usuario", foreign_keys=[concesionario_ganador_id])
+    pujas = relationship("HistorialPuja", back_populates="subasta", cascade="all, delete-orphan")
+
+
+class HistorialPuja(Base):
+    """Ledger para subastas en tiempo real"""
+    __tablename__ = "historial_pujas"
+    id = Column(Integer, primary_key=True, index=True)
+    subasta_id = Column(Integer, ForeignKey("subastas_moto.id", ondelete="CASCADE"), index=True)
+    postor_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
+    monto = Column(Float, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    subasta = relationship("SubastaMoto", back_populates="pujas")
+    postor = relationship("Usuario")
