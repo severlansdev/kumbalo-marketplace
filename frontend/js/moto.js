@@ -51,26 +51,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         const imageUrl = moto.image_url || 'https://images.unsplash.com/photo-1558981806-ec527fa84c3d?w=500';
         document.getElementById('ogImage').content = imageUrl;
 
-        // Render Swiper Slides (Dynamic local premium assets)
+        // Render Swiper Slides (Usando la imagen real subida por el usuario a S3 / Base de Datos)
         const wrapper = document.getElementById('swiperWrapper');
-        const getBrandImage = (marca) => {
-            const m = marca.toLowerCase();
-            if (m.includes('yamaha')) return '/assets/motos/yamaha.png';
-            if (m.includes('ducati')) return '/assets/motos/ducati.png';
-            if (m.includes('bmw')) return '/assets/motos/bmw.png';
-            return '/assets/motos/yamaha.png'; // Fallback
-        };
-
-        const premiumImg = getBrandImage(moto.marca);
+        
         wrapper.innerHTML = `
             <div class="swiper-slide">
-                <img src="${premiumImg}" alt="${moto.marca} ${moto.modelo}">
+                <img src="${imageUrl}" alt="${moto.marca} ${moto.modelo}">
+            </div>
+            <!-- Duplicamos con filtros leves si queremos rellenar el carrusel temporalmente por falta de galería múltiple -->
+            <div class="swiper-slide">
+                <img src="${imageUrl}" alt="Vista lateral Premium" style="filter: brightness(1.1);">
             </div>
             <div class="swiper-slide">
-                <img src="${premiumImg}" alt="Vista lateral Premium" style="filter: brightness(1.1);">
-            </div>
-            <div class="swiper-slide">
-                <img src="${premiumImg}" alt="Detalle Kumbalo" style="filter: saturate(1.2);">
+                <img src="${imageUrl}" alt="Detalle Kumbalo" style="filter: saturate(1.2);">
             </div>
         `;
 
