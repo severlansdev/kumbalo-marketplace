@@ -103,11 +103,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 actionButtons = `
                     <div style="display:flex; flex-direction:column; gap:8px; margin-top: 10px;">
-                        <div style="display:flex; gap:10px;">
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
                             <button onclick="abrirMantenimiento(${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Bitácora</button>
+                            <button onclick="iniciarSubasta(${moto.id}, ${moto.precio})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1; border-color:var(--primary); color:var(--primary);">Subastar (C2B)</button>
                             ${moto.is_hot ? 
-                                '<span class="badge badge-hot" style="align-self:center;">🔥</span>' : 
-                                `<button onclick="openCheckout('boost', ${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; flex:1;">Destacar</button>`
+                                '<span class="badge badge-hot" style="align-self:center; width:100%;text-align:center;">🔥</span>' : 
+                                `<button onclick="openCheckout('boost', ${moto.id})" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; width:100%;">Destacar ($50k)</button>`
                             }
                         </div>
                         ${esCiudadSoportada ? 
@@ -298,6 +299,28 @@ window.guardarMantenimiento = async function() {
         btn.disabled = false;
     }
 };
+
+window.iniciarSubasta = async function(motoId, precioBase) {
+    const minPrice = prompt("¿Cuál es el precio MÍNIMO (COP) que aceptarías en una subasta relámpago con Concesionarios? Este valor será oculto.", Math.floor(precioBase * 0.9));
+    
+    if (!minPrice || isNaN(minPrice)) {
+        return;
+    }
+
+    try {
+        const response = await window.api.business.crearSubasta({
+            moto_id: motoId,
+            precio_minimo: parseFloat(minPrice),
+            duracion_horas: 24
+        });
+        
+        alert("¡Éxito! Tu moto está ahora expuesta en el catálogo VIP privado de concesionarios de Kumbalo. Si recibes una oferta mayor o igual a tu precio mínimo, te notificaremos.");
+        window.location.reload();
+    } catch (e) {
+        alert("Error al iniciar subasta C2B: " + e.message);
+    }
+};
+
 // AI Command Center Logic
 async function loadAgentRoster() {
     const roster = document.getElementById('agent-roster');

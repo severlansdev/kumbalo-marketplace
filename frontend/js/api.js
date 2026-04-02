@@ -171,6 +171,30 @@ const api = {
                 body: JSON.stringify({ placa, email })
             });
         }
+    },
+    // Endpoints Fintech y Monetización
+    business: {
+        solicitarCredito: async (data) => {
+            return await api.request('/v1/business/creditos/solicitar', {
+                method: 'POST',
+                headers: api.getHeaders(),
+                body: JSON.stringify(data)
+            });
+        },
+        cotizarSeguro: async (data) => {
+            return await api.request('/v1/business/seguros/cotizar', {
+                method: 'POST',
+                headers: api.getHeaders(),
+                body: JSON.stringify(data)
+            });
+        },
+        crearSubasta: async (data) => {
+            return await api.request('/v1/business/subastas/crear', {
+                method: 'POST',
+                headers: api.getHeaders(),
+                body: JSON.stringify(data)
+            });
+        }
     }
 };
 

@@ -198,6 +198,60 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        // --- Lógica Fintech y Nuevos Negocios ---
+        const btnCreditPreapproval = document.getElementById('btnCreditPreapproval');
+        if (btnCreditPreapproval) {
+            btnCreditPreapproval.addEventListener('click', async () => {
+                if (!window.api.isAuthenticated()) {
+                    alert('Debes iniciar sesión para solicitar preaprobación de crédito.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const originalText = btnCreditPreapproval.innerHTML;
+                btnCreditPreapproval.innerHTML = '<i class="ti ti-loader ti-spin"></i> Procesando...';
+                try {
+                    const plazo = document.getElementById('plazoCredito').value;
+                    await window.api.business.solicitarCredito({
+                        moto_id: motoId,
+                        monto_solicitado: moto.precio,
+                        plazo_meses: parseInt(plazo) || 48,
+                        ingresos_mensuales: 0 // Mock field since we don't ask in the UI yet
+                    });
+                    alert('¡Solicitud enviada a Bancolombia Sufi! Un asesor te contactará pronto.');
+                } catch (error) {
+                    console.error('Error credito:', error);
+                    alert('Ocurrió un error al procesar tu solicitud de crédito.');
+                } finally {
+                    btnCreditPreapproval.innerHTML = originalText;
+                }
+            });
+        }
+
+        const btnCotizarSeguro = document.getElementById('btnCotizarSeguro');
+        if (btnCotizarSeguro) {
+            btnCotizarSeguro.addEventListener('click', async () => {
+                if (!window.api.isAuthenticated()) {
+                    alert('Debes iniciar sesión para cotizar tu seguro Todo Riesgo.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const originalText = btnCotizarSeguro.innerHTML;
+                btnCotizarSeguro.innerHTML = '<i class="ti ti-loader ti-spin"></i> Cotizando con Sura...';
+                try {
+                    await window.api.business.cotizarSeguro({
+                        moto_id: motoId,
+                        tipo_seguro: "Todo Riesgo"
+                    });
+                    alert('¡Solicitud de cotización con SURA enviada con éxito! Revisarás la oferta en tu correo.');
+                } catch (error) {
+                    console.error('Error seguro:', error);
+                    alert('Ocurrió un error al cotizar el seguro. Intenta de nuevo.');
+                } finally {
+                    btnCotizarSeguro.innerHTML = originalText;
+                }
+            });
+        }
+
     } catch (error) {
         console.error('Error fetched moto details:', error);
         loadingState.style.display = 'none';
