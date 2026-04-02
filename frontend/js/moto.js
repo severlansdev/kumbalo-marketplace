@@ -74,26 +74,43 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `;
 
-        // Initializes Swiper with Touch Swipes
-        new Swiper('.moto-swiper', {
-            loop: true,
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            autoplay: {
-                delay: 4000,
-                disableOnInteraction: false,
-            },
-            effect: 'fade',
-            fadeEffect: {
-                crossFade: true
-            }
-        });
+        // Initializes Swiper with Touch Swipes (Robust Initialization)
+        const swiperContainer = document.querySelector('.moto-swiper');
+        const swiperCount = wrapper.querySelectorAll('.swiper-slide').length;
+        
+        if (swiperCount > 1) {
+            new Swiper('.moto-swiper', {
+                loop: true,
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                autoplay: {
+                    delay: 4000,
+                    disableOnInteraction: false,
+                },
+                effect: 'fade',
+                fadeEffect: {
+                    crossFade: true
+                }
+            });
+        } else {
+            // Display as static image if only one slide
+            const nextBtn = document.querySelector('.swiper-button-next');
+            const prevBtn = document.querySelector('.swiper-button-prev');
+            const pagination = document.querySelector('.swiper-pagination');
+            
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (pagination) pagination.style.display = 'none';
+            
+            // Ensure visibility without carousel logic
+            swiperContainer.style.overflow = 'visible';
+        }
 
         document.getElementById('motoBadge').textContent = moto.kilometraje === 0 ? 'NUEVA' : 'USADA';
 
