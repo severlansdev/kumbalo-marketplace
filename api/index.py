@@ -52,6 +52,23 @@ try:
     if not getattr(app.state, 'db_synced', False):
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         success, error_msg = sync_db_schema(engine, models, SessionLocal, pwd_context)
+        
+        # --- AUTO-HEALER: Reparar imágenes negras (Yamaha, Ducati, BMW) ---
+        if success:
+            try:
+                db_fix = SessionLocal()
+                # Reparar Yamaha
+                db_fix.query(models.Moto).filter(models.Moto.marca.ilike("%Yamaha%")).update({"image_url": "assets/motos/yamaha.png"})
+                # Reparar Ducati
+                db_fix.query(models.Moto).filter(models.Moto.marca.ilike("%Ducati%")).update({"image_url": "assets/motos/ducati.png"})
+                # Reparar BMW
+                db_fix.query(models.Moto).filter(models.Moto.marca.ilike("%BMW%")).update({"image_url": "assets/motos/bmw.png"})
+                db_fix.commit()
+                db_fix.close()
+                print("DATABASE AUTO-HEAL: Images repointed to local assets.")
+            except Exception as e:
+                print(f"DATABASE AUTO-HEAL FAILED: {str(e)}")
+        
         app.state.sync_status = "SUCCESS" if success else "FAILED"
         app.state.db_synced = success
         app.state.sync_error = error_msg
