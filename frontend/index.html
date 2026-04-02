@@ -318,8 +318,60 @@
                 </article>
             </div>
 
-            <div class="center-btn">
+            <div class="center-btn" style="margin-top: 2rem;">
                 <a href="#catalogo" class="btn btn-outline btn-lg">Ver Todo el Catálogo</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fintech Ecosystem Spotlight (Subastas & Permutas) -->
+    <section id="fintech-ecosystem" class="fintech-section" style="background: radial-gradient(circle at center, #111, #000); padding: 80px 0; color: white;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 50px;">
+                <span style="background: var(--primary); padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">NUEVO EN KUMBALO</span>
+                <h2 style="font-family: var(--font-family-display); font-size: 2.8rem; margin-top: 15px;">Mucho más que ventas tradicionales</h2>
+                <p style="color: var(--gray); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Descubre modelos de transacción ultra-rápidos y seguros exclusivos de nuestra plataforma tecnológica.</p>
+            </div>
+
+            <div class="fintech-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
+                <!-- Live Auctions -->
+                <div class="fintech-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,40,0,0.2); border-radius: 20px; padding: 40px; position: relative; overflow: hidden; transition: transform 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+                    <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(255,40,0,0.1); border-radius: 50%; filter: blur(30px);"></div>
+                    
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 20px;">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    
+                    <h3 style="font-size: 1.8rem; margin-bottom: 15px;">Subastas B2B (Venta en 24h)</h3>
+                    <p style="color: #aaa; line-height: 1.6; margin-bottom: 25px;">¿Necesitas liquidez urgente? Envía tu moto a nuestra red privada de concesionarios. Ellos pujarán en tiempo real bajo un reloj en vivo. Si la oferta supera tu precio mínimo, el trato se cierra automáticamente con tu dinero asegurado.</p>
+                    
+                    <ul style="list-style: none; padding: 0; margin-bottom: 30px; color: #ccc;">
+                        <li style="margin-bottom: 10px;">✓ Ofertas Institucionales Certificadas</li>
+                        <li style="margin-bottom: 10px;">✓ Venta express sin mostrar tu moto 20 veces</li>
+                        <li>✓ Retiro directo en sede segura KUMBALO</li>
+                    </ul>
+                    
+                    <a href="registro.html" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">Subastar Mi Moto <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+                </div>
+
+                <!-- Smart Trade-Ins -->
+                <div class="fintech-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 40px; position: relative; overflow: hidden; transition: transform 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+                    
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 20px;">
+                        <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M3 8V3h5M21 21L3 3"/>
+                    </svg>
+                    
+                    <h3 style="font-size: 1.8rem; margin-bottom: 15px;">Smart Trade-Ins (Permutas)</h3>
+                    <p style="color: #aaa; line-height: 1.6; margin-bottom: 25px;">Cambia tu moto actual entregándola como parte de pago a otro usuario. Ofrece tu vehículo más un saldo de dinero por la moto de tus sueños de forma cibernética.</p>
+                    
+                    <ul style="list-style: none; padding: 0; margin-bottom: 30px; color: #ccc;">
+                        <li style="margin-bottom: 10px;">✓ Análisis de excedente automático</li>
+                        <li style="margin-bottom: 10px;">✓ Traspaso "Double Escrow" en simultáneo</li>
+                        <li>✓ Fideicomiso por MercadoPago LLC</li>
+                    </ul>
+                    
+                    <a href="#catalogo" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px;">Buscar Moto a Permutar <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+                </div>
             </div>
         </div>
     </section>
