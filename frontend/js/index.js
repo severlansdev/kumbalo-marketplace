@@ -62,9 +62,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error fetching motos from API. Rendering fallback mock data.', error);
         // Fallback mock data to ensure the UI looks great even if API is down
         const mockMotos = [
-            { id: 1, marca: 'Yamaha', modelo: 'MT-09 SP', año: 2024, kilometraje: 0, precio: 94900000, image_url: 'assets/motos/yamaha.png' },
-            { id: 2, marca: 'Ducati', modelo: 'Panigale V4', año: 2023, kilometraje: 1200, precio: 185000000, image_url: 'assets/motos/ducati.png' },
-            { id: 3, marca: 'BMW', modelo: 'R1250GS', año: 2023, kilometraje: 5000, precio: 135000000, image_url: 'assets/motos/bmw.png' },
+            { id: 1, marca: 'Yamaha', modelo: 'MT-09 SP', año: 2024, kilometraje: 0, precio: 94900000, image_url: '/assets/motos/yamaha.png' },
+            { id: 2, marca: 'Ducati', modelo: 'Panigale V4', año: 2023, kilometraje: 1200, precio: 185000000, image_url: '/assets/motos/ducati.png' },
+            { id: 3, marca: 'BMW', modelo: 'R1250GS', año: 2023, kilometraje: 5000, precio: 135000000, image_url: '/assets/motos/bmw.png' },
             { id: 4, marca: 'Kawasaki', modelo: 'Ninja ZX-6R', año: 2024, kilometraje: 500, precio: 78000000, image_url: 'https://images.unsplash.com/photo-1614162692298-7c2c757b3c63?w=500' }
         ];
         renderMotos(mockMotos);
