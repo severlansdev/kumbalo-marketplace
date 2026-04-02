@@ -211,3 +211,51 @@ class Tramite(Base):
     moto = relationship("Moto")
     comprador = relationship("Usuario", foreign_keys=[comprador_id])
     vendedor = relationship("Usuario", foreign_keys=[vendedor_id])
+
+
+class LeadCredito(Base):
+    __tablename__ = "leads_credito"
+    id = Column(Integer, primary_key=True, index=True)
+    moto_id = Column(Integer, ForeignKey("motos.id"), index=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
+    monto_solicitado = Column(Float, nullable=False)
+    plazo_meses = Column(Integer, default=48)
+    ingresos_mensuales = Column(Float, nullable=True)
+    entidad_financiera = Column(String(100), default="Bancolombia Sufi")
+    estado = Column(String(50), default="pre_aprobacion_pendiente") # pre_aprobado, rechazado, desembolsado
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    moto = relationship("Moto")
+    usuario = relationship("Usuario")
+
+
+class LeadSeguro(Base):
+    __tablename__ = "leads_seguro"
+    id = Column(Integer, primary_key=True, index=True)
+    moto_id = Column(Integer, ForeignKey("motos.id"), index=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
+    tipo_seguro = Column(String(100), default="Todo Riesgo")
+    aseguradora = Column(String(100), default="SURA")
+    estado = Column(String(50), default="cotizacion_pendiente") # emitido, rechazado
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    moto = relationship("Moto")
+    usuario = relationship("Usuario")
+
+
+class SubastaMoto(Base):
+    """Modelo C2B para vender motos rápido a concesionarios"""
+    __tablename__ = "subastas_moto"
+    id = Column(Integer, primary_key=True, index=True)
+    moto_id = Column(Integer, ForeignKey("motos.id"), index=True)
+    vendedor_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
+    precio_minimo = Column(Float, nullable=False)
+    mejor_oferta = Column(Float, default=0.0)
+    concesionario_ganador_id = Column(Integer, ForeignKey("usuarios.id"), nullable=True)
+    fecha_fin = Column(DateTime(timezone=True), nullable=False)
+    estado = Column(String(50), default="activa") # activa, completada, desierta
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    moto = relationship("Moto")
+    vendedor = relationship("Usuario", foreign_keys=[vendedor_id])
+    ganador = relationship("Usuario", foreign_keys=[concesionario_ganador_id])

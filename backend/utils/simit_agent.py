@@ -45,15 +45,15 @@ class SimitAgent:
                     return self._parse_results(data)
                     
                 elif response.status_code == 403:
-                    logger.warning(f"SIMIT Bloqueado por Captcha para placa {plate}.")
-                    return self.get_mock_real_data(plate) # Fallback IA para no bloquear flujo
+                    logger.warning(f"SIMIT Bloqueado por Captcha u Origen para placa {plate}.")
+                    raise Exception("El servidor de multas SIMIT ha bloqueado la consulta temporalmente. Intente más tarde.")
                 else:
                     logger.error(f"SIMIT Error {response.status_code}: {response.text}")
-                    return self.get_mock_real_data(plate)
+                    raise Exception(f"Error de comunicación con SIMIT: {response.status_code}")
                     
         except Exception as e:
             logger.error(f"Error crítico en SIMIT Agent: {str(e)}")
-            return self.get_mock_real_data(plate)
+            raise
 
     def _parse_results(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -65,16 +65,4 @@ class SimitAgent:
             "cantidad_infracciones": len(data.get("multas", [])),
             "estado": "VERIFICADO_REAL",
             "fuente": "SIMIT OFICIAL"
-        }
-
-    def get_mock_real_data(self, plate: str) -> Dict[str, Any]:
-        """
-        Fallback inteligente: Si SIMIT está caído o bloqueado, 
-        mantenemos la 'IA Kumbalo' activa para no romper la experiencia de usuario.
-        """
-        return {
-            "total_multas": 0.0,
-            "cantidad_infracciones": 0,
-            "estado": "IA_PREDICTIVE",
-            "fuente": "IA KUMBALO (FALLBACK)"
         }

@@ -42,7 +42,7 @@ except Exception as e:
     app.state.runt_error = str(e)
 
 try:
-    from backend.routers import auth, motos, payments, tramites, debug, analytics
+    from backend.routers import auth, motos, payments, tramites, debug, analytics, business
     from backend.main import sync_db_schema
     from backend.database import SessionLocal, engine
     from backend import models
@@ -53,34 +53,7 @@ try:
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         success, error_msg = sync_db_schema(engine, models, SessionLocal, pwd_context)
         
-        # --- AUTO-HEALER: Reparar imágenes negras (Yamaha, Ducati, BMW, Kawasaki, KTM) ---
-        if success:
-            try:
-                db_fix = SessionLocal()
-                # 1. Reparar Portadas (Tabla Moto)
-                db_fix.query(models.Moto).filter(models.Moto.marca.ilike("%Yamaha%")).update({"image_url": "/assets/motos/yamaha.png"})
-                db_fix.query(models.Moto).filter(models.Moto.marca.ilike("%Ducati%")).update({"image_url": "/assets/motos/ducati.png"})
-                db_fix.query(models.Moto).filter(models.Moto.marca.ilike("%BMW%")).update({"image_url": "/assets/motos/bmw.png"})
-                db_fix.query(models.Moto).filter(models.Moto.marca.ilike("%Kawasaki%")).update({"image_url": "/assets/motos/kawasaki.png"})
-                
-                # 2. Reparar Galería (Tabla MotoImagen) - Crucial para la vista de detalles
-                # Buscamos imágenes que fallen (Unsplash o S3 local rotos)
-                broken_yamahas = db_fix.query(models.MotoImagen).join(models.Moto).filter(models.Moto.marca.ilike("%Yamaha%")).all()
-                for img in broken_yamahas: img.url = "/assets/motos/yamaha.png"
-                
-                broken_ducatis = db_fix.query(models.MotoImagen).join(models.Moto).filter(models.Moto.marca.ilike("%Ducati%")).all()
-                for img in broken_ducatis: img.url = "/assets/motos/ducati.png"
-                
-                broken_bmws = db_fix.query(models.MotoImagen).join(models.Moto).filter(models.Moto.marca.ilike("%BMW%")).all()
-                for img in broken_bmws: img.url = "/assets/motos/bmw.png"
-                
-                db_fix.commit()
-                db_fix.close()
-                print("DATABASE AUTO-HEAL: Portfolio AND Gallery repointed to local assets.")
-            except Exception as e:
-                import traceback
-                print(f"DATABASE AUTO-HEAL FAILED: {str(e)} | {traceback.format_exc()}")
-        
+
         app.state.sync_status = "SUCCESS" if success else "FAILED"
         app.state.db_synced = success
         app.state.sync_error = error_msg
@@ -91,6 +64,7 @@ try:
     app.include_router(tramites.router, prefix="/api")
     app.include_router(debug.router, prefix="/api")
     app.include_router(analytics.router, prefix="/api")
+    app.include_router(business.router, prefix="/api/v1")
 except Exception as e:
     import traceback
     app.state.core_error = f"{str(e)} | Trace: {traceback.format_exc()}"

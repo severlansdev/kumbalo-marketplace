@@ -248,6 +248,12 @@ except Exception as e:
     print(f"[ERROR] Could not load tramites router: {e}")
 
 try:
+    from .routers import business
+    app.include_router(business.router, prefix="/api/v1")
+except Exception as e:
+    print(f"[ERROR] Could not load business router: {e}")
+
+try:
     from .routers import runt
     app.include_router(runt.router, prefix="/api/v1/runt", tags=["RUNT Lead Magnet"])
 except Exception as e:

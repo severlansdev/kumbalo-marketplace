@@ -117,10 +117,3 @@ class RuntAgent:
             "fuente": "RUNT OFICIAL (VERIFICACIÓN TOTAL)"
         }
 
-    def get_mock_verified_data(self, plate: str, vin: str) -> Dict[str, Any]:
-        return {
-            "marca": "DUCATI" if vin.startswith("ZDM") else "YAMAHA",
-            "modelo": 2010 + int(vin[9]) if len(vin) > 9 and vin[9].isdigit() else 2020,
-            "es_verificado": True,
-            "fuente": "RUNT (VERIFICADO POR VIN)"
-        }

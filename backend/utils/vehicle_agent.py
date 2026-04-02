@@ -75,11 +75,7 @@ class VehicleIntelligenceAgent:
         if (vin and len(vin) >= 10) or (doc_type and doc_num) or (captcha_token and captcha_value):
             dna = await self.get_real_vehicle_dna(placa, vin, doc_type, doc_num, captcha_token, captcha_value)
         else:
-            # Consulta "AI" determinista para lo básico (Lead Magnet)
-            seed_str = f"kumbalo-dna-{placa}"
-            seed_hash = hashlib.md5(seed_str.encode()).hexdigest()
-            random.seed(seed_hash)
-            dna = self._generate_consistent_mock(placa)
+            raise Exception("Datos insuficientes para realizar la verificación legal de la placa.")
 
         # SIEMPRE intentamos inyectar datos reales de SIMIT para las multas
         simit_data = await self.simit.get_fines_by_plate(placa)
@@ -123,62 +119,6 @@ class VehicleIntelligenceAgent:
                 # Lanzamos una excepción para que el router la maneje y el usuario vea el error
                 raise Exception(f"RUNT Falló: {real_data.get('detail', 'Datos no encontrados o captcha inválido')}")
         
-        # Fallback a 'IA' solo si NO hay una intención de verificación real activa (sin captcha)
-        if vin:
-            runt_data = self.runt.get_mock_verified_data(placa, vin)
-            dna = self._generate_consistent_mock(placa)
-            dna.marca = runt_data.get("marca", dna.marca)
-            dna.modelo = runt_data.get("modelo", dna.modelo)
-            dna.es_verificado = True
-            dna.fuente = runt_data.get("fuente", "RUNT (VERIFICADO POR VIN)")
-            return dna
-
-        return self._generate_consistent_mock(placa)
-
-    def _generate_consistent_mock(self, placa: str) -> VehicleADN:
-        # Marca y Línea coherente
-        marca = random.choice(list(self.LINEAS_POPULARES.keys()))
-        linea = random.choice(self.LINEAS_POPULARES.get(marca, ["GENERICA"]))
-        
-        modelo = random.randint(2015, 2024)
-        color = random.choice(self.COLORES)
-        
-        # Lógica de SOAT y RTM
-        # 80% de probabilidad de estar vigente si es premium
-        soat_days = random.randint(-40, 300)
-        rtm_days = random.randint(-40, 300)
-        
-        hoy = datetime.now()
-        v_soat = hoy + timedelta(days=soat_days)
-        v_rtm = hoy + timedelta(days=rtm_days)
-        
-        # Si es modelo muy reciente, RTM es vigente por ley (primera rtm a los 2 años en motos)
-        if modelo >= 2023:
-            rtm_days = 365
-            v_rtm = hoy + timedelta(days=rtm_days)
-
-        multas_count = random.choice([0, 0, 0, 1, 0, 2, 0]) # 70% sin multas
-        valor_multa = multas_count * random.randint(150000, 600000)
-        
-        # Embargos son raros (10% prob)
-        embargos = random.random() < 0.1
-        limitaciones = "NINGUNA" if not embargos else "EMBARGO POR ENTIDAD BANCARIA"
-
-        return VehicleADN(
-            placa=placa,
-            marca=marca,
-            linea=linea,
-            modelo=modelo,
-            color=color,
-            estado_soat="VIGENTE" if soat_days > 0 else "VENCIDO",
-            vencimiento_soat=v_soat.strftime("%Y-%m-%d"),
-            estado_rtm="VIGENTE" if rtm_days > 0 else "VENCIDA",
-            vencimiento_rtm=v_rtm.strftime("%Y-%m-%d"),
-            multas=multas_count,
-            valor_multas=float(valor_multa),
-            embargos=embargos,
-            limitaciones_propiedad=limitaciones,
-            es_verificado=False,
-            fuente="IA KUMBALO"
-        )
+        # Si no hay captcha o datos válidos, no inventamos datos. Reclamamos conexión al RUNT.
+        raise Exception("Se requiere conexión verificada (Captcha/Documentos) para obtener el ADN del vehículo de manera legal y no simulada.")
 
