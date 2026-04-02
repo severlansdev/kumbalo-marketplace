@@ -51,17 +51,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const imageUrl = moto.image_url || 'https://images.unsplash.com/photo-1558981806-ec527fa84c3d?w=500';
         document.getElementById('ogImage').content = imageUrl;
 
-        // Render Swiper Slides (Mocking multiple images functionality)
+        // Render Swiper Slides (Dynamic local premium assets)
         const wrapper = document.getElementById('swiperWrapper');
+        const getBrandImage = (marca) => {
+            const m = marca.toLowerCase();
+            if (m.includes('yamaha')) return '/assets/motos/yamaha.png';
+            if (m.includes('ducati')) return '/assets/motos/ducati.png';
+            if (m.includes('bmw')) return '/assets/motos/bmw.png';
+            return '/assets/motos/yamaha.png'; // Fallback
+        };
+
+        const premiumImg = getBrandImage(moto.marca);
         wrapper.innerHTML = `
             <div class="swiper-slide">
-                <img src="${imageUrl}" alt="${moto.marca} ${moto.modelo}">
+                <img src="${premiumImg}" alt="${moto.marca} ${moto.modelo}">
             </div>
             <div class="swiper-slide">
-                <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500" alt="Vista lateral">
+                <img src="${premiumImg}" alt="Vista lateral Premium" style="filter: brightness(1.1);">
             </div>
             <div class="swiper-slide">
-                <img src="https://images.unsplash.com/photo-1449426468159-f96dea597151?w=500" alt="Tubo de escape">
+                <img src="${premiumImg}" alt="Detalle Kumbalo" style="filter: saturate(1.2);">
             </div>
         `;
 
