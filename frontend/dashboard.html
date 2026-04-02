@@ -149,6 +149,17 @@
                         </a>
                     </li>
                     <li>
+                        <a href="#permutas">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 3 4 7l4 4"/>
+                                <path d="M4 7h16"/>
+                                <path d="m16 21 4-4-4-4"/>
+                                <path d="M20 17H4"/>
+                            </svg>
+                            Permutas C2C
+                        </a>
+                    </li>
+                    <li>
                         <a href="#traspasos">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -342,6 +353,24 @@
                 </div>
                 
                 <div id="traspasos-list" style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Permutas Section -->
+            <section id="permutas-section" style="display: none; margin-top: 30px;">
+                <div class="dashboard-header-top">
+                    <h2 class="dashboard-title">🔄 Smart Trade-Ins (Permutas)</h2>
+                </div>
+                <p class="dashboard-subtitle" style="margin-bottom: 25px;">Gestiona ofertas de intercambio de tu inventario. Al aceptar, Kumbalo iniciará el Doble Traspaso Segurizado con retención de dinero en Escrow.</p>
+                
+                <h3 style="color: #fff; margin-bottom: 15px; font-size: 1.2rem;">Ofertas Recibidas</h3>
+                <div id="permutas-recibidas-list" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+
+                <h3 style="color: #fff; margin-bottom: 15px; font-size: 1.2rem;">Mis Ofertas Emitidas</h3>
+                <div id="permutas-emitidas-list" style="display: flex; flex-direction: column; gap: 15px;">
                     <!-- Se llenará dinámicamente -->
                 </div>
             </section>

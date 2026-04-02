@@ -252,6 +252,42 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        const btnOfrecerPermuta = document.getElementById('btnOfrecerPermuta');
+        if (btnOfrecerPermuta) {
+            btnOfrecerPermuta.addEventListener('click', async () => {
+                if (!window.api.isAuthenticated()) {
+                    alert('Debes iniciar sesión para ofrecer un intercambio.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const ofId = prompt("Ingresa el ID de la moto de TU GARAJE que deseas ofrecer en permuta:");
+                if (!ofId) return;
+                
+                const excedente = prompt("Ingresa el valor (COP) que darás como excedente (0 si es mano a mano):", "0");
+                if (excedente === null) return;
+                
+                const originalText = btnOfrecerPermuta.innerHTML;
+                btnOfrecerPermuta.innerHTML = '<i class="ti ti-loader ti-spin"></i> Enviando Oferta...';
+                try {
+                    await window.api.request('/v1/business/permutas/ofrecer', {
+                        method: 'POST',
+                        headers: window.api.getHeaders(),
+                        body: JSON.stringify({
+                            moto_ofrecida_id: parseInt(ofId),
+                            moto_objetivo_id: motoId,
+                            excedente: parseFloat(excedente)
+                        })
+                    });
+                    alert('¡Oferta de permuta enviada con éxito! El vendedor decidirá si acepta el Smart Trade-In con Escrow Dual.');
+                } catch (error) {
+                    console.error('Error permutas:', error);
+                    alert('Ocurrió un error al enviar tu oferta de permuta: ' + error.message);
+                } finally {
+                    btnOfrecerPermuta.innerHTML = originalText;
+                }
+            });
+        }
+
     } catch (error) {
         console.error('Error fetched moto details:', error);
         loadingState.style.display = 'none';

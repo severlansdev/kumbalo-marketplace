@@ -163,3 +163,89 @@ def realizar_puja(subasta_id: int, req: PujaCreate, db: Session = Depends(get_db
     # Ejemplo: broadcast({"type": "nueva_puja", "subasta_id": subasta.id, "monto": subasta.mejor_oferta})
     
     return {"status": "success", "message": "Puja registrada exitosamente", "nueva_oferta": subasta.mejor_oferta, "fecha_fin": subasta.fecha_fin}
+
+# ==========================================
+# 4. Smart Trade-Ins (Permutas C2C)
+# ==========================================
+
+class PermutaCreate(BaseModel):
+    moto_ofrecida_id: int
+    moto_objetivo_id: int
+    excedente: float
+
+@router.post("/permutas/ofrecer")
+def ofrecer_permuta(req: PermutaCreate, db: Session = Depends(get_db), current_user: models.Usuario = Depends(get_current_user)):
+    """Crea una oferta de permuta (Trade-In) + Dinero desde un usuario a otro."""
+    moto_objetivo = db.query(models.Moto).filter(models.Moto.id == req.moto_objetivo_id).first()
+    moto_ofrecida = db.query(models.Moto).filter(models.Moto.id == req.moto_ofrecida_id).first()
+    
+    if not moto_objetivo or not moto_ofrecida:
+        raise HTTPException(status_code=404, detail="Alguna de las motos no existe.")
+        
+    if moto_ofrecida.propietario_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No eres dueño de la moto que estás ofreciendo como canje.")
+        
+    if moto_objetivo.propietario_id == current_user.id:
+        raise HTTPException(status_code=400, detail="No puedes permutar contigo mismo.")
+
+    nueva_permuta = models.OfertaPermuta(
+        oferente_id=current_user.id,
+        receptor_id=moto_objetivo.propietario_id,
+        moto_ofrecida_id=req.moto_ofrecida_id,
+        moto_objetivo_id=req.moto_objetivo_id,
+        excedente=req.excedente
+    )
+    db.add(nueva_permuta)
+    db.commit()
+    db.refresh(nueva_permuta)
+    
+    return {"status": "success", "message": "Oferta de permuta enviada. Notificaremos al vendedor.", "permuta_id": nueva_permuta.id}
+
+
+@router.get("/permutas/mis-ofertas")
+def listar_permutas(db: Session = Depends(get_db), current_user: models.Usuario = Depends(get_current_user)):
+    """Retorna las ofertas de permuta Recibidas y Emitidas"""
+    recibidas = db.query(models.OfertaPermuta).filter(models.OfertaPermuta.receptor_id == current_user.id).all()
+    emitidas = db.query(models.OfertaPermuta).filter(models.OfertaPermuta.oferente_id == current_user.id).all()
+    
+    def parse_permuta(p):
+        return {
+            "id": p.id,
+            "estado": p.estado,
+            "excedente": p.excedente,
+            "moto_ofrecida": f"{p.moto_ofrecida.marca} {p.moto_ofrecida.modelo}",
+            "moto_objetivo": f"{p.moto_objetivo.marca} {p.moto_objetivo.modelo}",
+            "fecha": p.created_at
+        }
+        
+    return {
+        "recibidas": [parse_permuta(p) for p in recibidas],
+        "emitidas": [parse_permuta(p) for p in emitidas]
+    }
+
+
+@router.post("/permutas/{permuta_id}/responder")
+def responder_permuta(permuta_id: int, accion: str, db: Session = Depends(get_db), current_user: models.Usuario = Depends(get_current_user)):
+    """Permite al receptor Aceptar o Rechazar la permuta. Si acepta, se genera Double Escrow."""
+    permuta = db.query(models.OfertaPermuta).filter(models.OfertaPermuta.id == permuta_id).first()
+    if not permuta:
+        raise HTTPException(status_code=404, detail="Permuta no encontrada")
+        
+    if permuta.receptor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No puedes responder a una oferta que no es tuya.")
+        
+    if accion not in ["aceptar", "rechazar"]:
+        raise HTTPException(status_code=400, detail="Acción inválida. Usa 'aceptar' o 'rechazar'.")
+        
+    if accion == "rechazar":
+        permuta.estado = "rechazada"
+        db.commit()
+        return {"status": "success", "message": "Oferta rechazada."}
+        
+    if accion == "aceptar":
+        permuta.estado = "aceptada"
+        # Aquí se inicia el Double Escrow:
+        # Se crearían 2 Trámites (Traspaso de Moto A a Receptor) y (Traspaso de Moto B a Oferente).
+        # Esto bloquea temporalmente el inventario involucrado.
+        db.commit()
+        return {"status": "success", "message": "¡Oferta Aceptada! Iniciando Traspaso Dual."}

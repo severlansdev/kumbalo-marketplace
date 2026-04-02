@@ -392,16 +392,20 @@ document.querySelectorAll('.dashboard-nav a').forEach(link => {
             const grid = document.getElementById('misMotosGrid');
             const aiSection = document.getElementById('ia-center-section');
             const transferSection = document.getElementById('traspasos-section');
+            const permutasSection = document.getElementById('permutas-section');
             const header = document.querySelector('.dashboard-header');
 
             // Hide all by default
-            [grid, aiSection, transferSection, header].forEach(el => { if(el) el.style.display = 'none'; });
+            [grid, aiSection, transferSection, permutasSection, header].forEach(el => { if(el) el.style.display = 'none'; });
 
             if (target === '#ia-center') {
                 aiSection.style.display = 'block';
             } else if (target === '#traspasos') {
                 if(transferSection) transferSection.style.display = 'block';
                 loadTraspasos();
+            } else if (target === '#permutas') {
+                if(permutasSection) permutasSection.style.display = 'block';
+                loadPermutas();
             } else {
                 grid.style.display = 'grid';
                 header.style.display = 'block';
@@ -814,3 +818,86 @@ async function loadMarketPulse() {
         console.warn("Could not load market pulse:", e);
     }
 }
+
+async function loadPermutas() {
+    const listRecibidas = document.getElementById('permutas-recibidas-list');
+    const listEmitidas = document.getElementById('permutas-emitidas-list');
+    if (!listRecibidas || !listEmitidas) return;
+
+    try {
+        const response = await window.api.request('/v1/business/permutas/mis-ofertas', {
+            method: 'GET',
+            headers: window.api.getHeaders()
+        });
+
+        // Recibidas
+        listRecibidas.innerHTML = '';
+        if (response.recibidas.length === 0) {
+            listRecibidas.innerHTML = '<p style="color:#888;">No tienes ofertas recibidas en este momento.</p>';
+        } else {
+            response.recibidas.forEach(p => {
+                const card = createPermutaCard(p, true);
+                listRecibidas.appendChild(card);
+            });
+        }
+
+        // Emitidas
+        listEmitidas.innerHTML = '';
+        if (response.emitidas.length === 0) {
+            listEmitidas.innerHTML = '<p style="color:#888;">No has enviado ninguna oferta de permuta.</p>';
+        } else {
+            response.emitidas.forEach(p => {
+                const card = createPermutaCard(p, false);
+                listEmitidas.appendChild(card);
+            });
+        }
+    } catch (e) {
+        console.error("Error loading permutas:", e);
+    }
+}
+
+function createPermutaCard(permuta, isRecibida) {
+    const card = document.createElement('div');
+    card.style.cssText = "background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:20px; border-radius:15px; display:flex; justify-content:space-between; align-items:center;";
+    
+    let statusColor = '#f59e0b'; 
+    if (permuta.estado === 'aceptada') statusColor = '#10b981';
+    if (permuta.estado === 'rechazada') statusColor = '#ef4444';
+
+    const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+    
+    let actionButtons = '';
+    if (isRecibida && permuta.estado === 'pendiente') {
+        actionButtons = `
+            <div style="display:flex; gap:10px;">
+                <button onclick="responderPermuta(${permuta.id}, 'aceptar')" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.8rem;">Aceptar (Iniciar Double Escrow)</button>
+                <button onclick="responderPermuta(${permuta.id}, 'rechazar')" class="btn btn-outline" style="padding: 8px 15px; font-size: 0.8rem; border-color:var(--error); color:var(--error);">Rechazar</button>
+            </div>
+        `;
+    }
+
+    card.innerHTML = `
+        <div>
+            <h4 style="color:#fff; margin-bottom:5px;">Trade-In ID #${permuta.id}</h4>
+            <p style="font-size:0.8rem; color:#888; margin-bottom:3px;">Te ofrecen: <span style="color:#fff;">${permuta.moto_ofrecida}</span> + <span style="color:var(--primary); font-weight:bold;">${formatter.format(permuta.excedente)}</span></p>
+            <p style="font-size:0.8rem; color:#888; margin-bottom:3px;">Por tu: <span style="color:#fff;">${permuta.moto_objetivo}</span></p>
+            <p style="font-size:0.8rem; color:#888;">Estado: <b style="color:${statusColor}">${permuta.estado.toUpperCase()}</b></p>
+        </div>
+        ${actionButtons}
+    `;
+    return card;
+}
+
+window.responderPermuta = async function(id, accion) {
+    if (!confirm(`¿Estás seguro de que deseas ${accion} esta oferta?`)) return;
+    try {
+        const response = await window.api.request(`/v1/business/permutas/${id}/responder?accion=${accion}`, {
+            method: 'POST',
+            headers: window.api.getHeaders()
+        });
+        alert(response.message);
+        loadPermutas(); 
+    } catch (e) {
+        alert("Error al responder: " + e.message);
+    }
+};

@@ -273,3 +273,21 @@ class HistorialPuja(Base):
     
     subasta = relationship("SubastaMoto", back_populates="pujas")
     postor = relationship("Usuario")
+
+
+class OfertaPermuta(Base):
+    """Modelo para negociaciones Smart Trade-Ins (Permutas C2C con Escrow)"""
+    __tablename__ = "ofertas_permuta"
+    id = Column(Integer, primary_key=True, index=True)
+    oferente_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
+    receptor_id = Column(Integer, ForeignKey("usuarios.id"), index=True)
+    moto_ofrecida_id = Column(Integer, ForeignKey("motos.id"), index=True)
+    moto_objetivo_id = Column(Integer, ForeignKey("motos.id"), index=True)
+    excedente = Column(Float, default=0.0)
+    estado = Column(String(50), default="pendiente") # pendiente, aceptada, rechazada, finalizada
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    oferente = relationship("Usuario", foreign_keys=[oferente_id])
+    receptor = relationship("Usuario", foreign_keys=[receptor_id])
+    moto_ofrecida = relationship("Moto", foreign_keys=[moto_ofrecida_id])
+    moto_objetivo = relationship("Moto", foreign_keys=[moto_objetivo_id])
